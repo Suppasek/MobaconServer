@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const userModel = require('../models/staffModel');
+const staffModel = require('../models/staffModel');
 const config = require('../config/config');
 
-const getToken = (userId) => {
-  const token = jwt.sign(userModel.getUserById(userId), config.jwtsecret, {
+const getToken = (staffId) => {
+  const token = jwt.sign(staffModel.getStaffById(staffId), config.jwtsecret, {
     expiresIn: 86400, // expires in 24 hours
   });
   return token;

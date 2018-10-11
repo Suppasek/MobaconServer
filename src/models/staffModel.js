@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+// const mysql = require('mysql2');
 // const moment = require('moment');
 
 // mock up staffs
@@ -10,18 +11,18 @@ const staffs = [{
   password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
 }];
 
-const checkWebUserIsExisting = async (username, password) => {
-  const matchedUser = await staffs.find(async (element) => element.email === username);
-  const result = await bcrypt.compare(password, matchedUser.password);
+const checkStaffIsExisting = async (email, password) => {
+  const matchedStaff = await staffs.find((element) => element.email === email);
+  const result = await bcrypt.compare(password, matchedStaff.password);
   return result;
 };
-const getUsers = () => staffs;
-const getUserById = (id) => staffs.find((user) => user.id === id);
-const getUserByEmail = (email) => staffs.find((user) => user.email === email);
-const createWebUser = (staff) => {
+const getStaffs = () => staffs;
+const getStaffById = (id) => staffs.find((staff) => staff.id === id);
+const getStaffByEmail = (email) => staffs.find((staff) => staff.email === email);
+const createStaff = (staff) => {
   const tempStaff = staff;
   tempStaff.id = new Date().getTime().toString();
-  tempStaff.password = bcrypt.hashSync(staff.password, 8);
+  tempStaff.password = bcrypt.hashSync(staff.password, 10);
   staffs.push(tempStaff);
   const res = JSON.parse(JSON.stringify(staff));
   delete res.password;
@@ -29,9 +30,9 @@ const createWebUser = (staff) => {
 };
 
 module.exports = {
-  checkWebUserIsExisting,
-  getUsers,
-  getUserById,
-  getUserByEmail,
-  createWebUser,
+  checkStaffIsExisting,
+  getStaffs,
+  getStaffById,
+  getStaffByEmail,
+  createStaff,
 };

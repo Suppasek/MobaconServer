@@ -1,26 +1,32 @@
-const userModel = require('../models/staffModel');
+const staffModel = require('../models/staffModel');
 const jwtController = require('./jwtController');
 
+// validate body
+// const validateBody(params)
+
+// for web
 const webSignup = (req, res) => {
-  const createdUser = userModel.createWebUser(req.body);
+  const createdStaff = staffModel.createStaff(req.body);
   res.status(201).json({
-    token: jwtController.getToken(createdUser.id),
-    message: createdUser,
+    token: jwtController.getToken(createdStaff.id),
+    message: createdStaff,
   });
 };
 const webLogin = async (req, res) => {
-  const isUser = await userModel.checkWebUserIsExisting(req.body.username, req.body.password);
-  if (isUser) {
-    const user = userModel.getUserByEmail(req.body.username);
+  const isStaff = await staffModel.checkStaffIsExisting(req.body.email, req.body.password);
+  if (isStaff) {
+    const staff = staffModel.getStaffByEmail(req.body.email);
     res.status(200).send({
-      token: jwtController.getToken(user.id),
+      token: jwtController.getToken(staff.id),
     });
   } else {
     res.status(401).send('Unauthorized');
   }
 };
+
+// for mobile
 const mobileSignup = (req, res) => {
-  res.status(201).json(userModel.getUsers());
+  res.status(201).json(staffModel.getStaffs());
 };
 const mobileLogin = (req, res) => {
   res.status(200).send('loged in');
