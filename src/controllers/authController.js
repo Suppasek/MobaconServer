@@ -81,9 +81,7 @@ const verifyToken = async (req, res, next) => {
           message: err.errors[0].message,
         });
       } else {
-        res.status(500).json({
-          message: 'Internal Server Error',
-        });
+        res.status(500).json('Internal Server Error');
       }
     }
   });
@@ -119,9 +117,7 @@ const webSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).json({
-        message: 'Internal Server Error',
-      });
+      res.status(500).json('Internal Server Error');
     }
   }
 };
@@ -148,9 +144,7 @@ const webLogin = async (req, res) => {
       res.status(401).send('Unauthorized');
     }
   } catch (err) {
-    res.status(500).json({
-      message: 'Internal Server Error',
-    });
+    res.status(500).json('Internal Server Error');
   }
 };
 
@@ -182,9 +176,7 @@ const mobileSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).json({
-        message: 'Internal Server Error',
-      });
+      res.status(500).json('Internal Server Error');
     }
   }
 };
@@ -211,9 +203,7 @@ const mobileLogin = async (req, res) => {
       res.status(401).send('Unauthorized');
     }
   } catch (err) {
-    res.status(500).json({
-      message: 'Internal Server Error',
-    });
+    res.status(500).json('Internal Server Error');
   }
 };
 
