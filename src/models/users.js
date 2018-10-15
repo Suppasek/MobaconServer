@@ -1,0 +1,29 @@
+module.exports = (sequelize, DataTypes) => {
+  const Users = sequelize.define('Users', {
+    phoneNumber: {
+      allowNull: false,
+      unique: true,
+      type: DataTypes.STRING(20),
+      validate: {
+        notEmpty: true,
+        isNumeric: true,
+        len: [9, 10],
+      },
+    },
+    carrier: {
+      type: DataTypes.STRING(50),
+      validate: {
+        notEmpty: true,
+      },
+    },
+    password: {
+      allowNull: false,
+      type: DataTypes.STRING(255),
+      validate: {
+        notEmpty: true,
+      },
+    },
+  }, {});
+
+  return Users;
+};
