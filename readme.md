@@ -15,12 +15,12 @@ Create a mysql database named `masa_db` with collection `utf8_unicode_ci` after 
 Configure database connection at `src/config/config.js`
 ```
 "development": {
-	"username": "[username]",
-	"password": "[password]",
-	"database": "masa_db",
-	"host": "127.0.0.1",
-	"dialect": "mysql",
-	"timezone": "+07:00"
+"username": "[username]",
+"password": "[password]",
+"database": "masa_db",
+"host": "127.0.0.1",
+"dialect": "mysql",
+"timezone": "+07:00"
 }
 ```
 
