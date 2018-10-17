@@ -10,15 +10,15 @@ After clone this repository successfully. Install Node.js and install Node.js mo
 	$ npm install sequelize sequelize-cli -g
 	$ npm install
 
-Create a mysql database named `masa_db` with collection `utf8_unicode_ci` after install Node.js modules successfully.
+After install Node.js modules successfully, create a mysql database with collection `utf8_unicode_ci`.
 
-Configure database connection at `src/config/config.js`
+Configure database connection at `src/config/config.json`
 
 ```javascript
 "development": {
 	"username": "[username]",
 	"password": "[password]",
-	"database": "masa_db",
+	"database": "[database_name]",
 	"host": "127.0.0.1",
 	"dialect": "mysql",
 	"timezone": "+07:00"

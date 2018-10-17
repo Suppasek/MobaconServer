@@ -57,33 +57,38 @@ const getTokenFromBody = (req, res, next) => {
 };
 const verifyToken = async (req, res, next) => {
   getTokenFromBody(req, res, async () => {
-    let foundToken;
-    try {
-      foundToken = await models.Tokens.findAll({
-        where: {
-          token: {
-            [op.eq]: req.token,
-          },
-        },
-      });
-      if (foundToken[0]) {
-        if (foundToken[0].expired > moment().utc()) {
-          next();
-        } else {
-          res.status(401).send('Unauthorized');
-        }
-      } else {
+    jwt.verify(req.token, secret, async (authError) => {
+      if (authError) {
         res.status(401).send('Unauthorized');
-      }
-    } catch (err) {
-      if (err.errors) {
-        res.status(400).json({
-          message: err.errors[0].message,
-        });
       } else {
-        res.status(500).json('Internal Server Error');
+        try {
+          const foundToken = await models.Tokens.findAll({
+            where: {
+              token: {
+                [op.eq]: req.token,
+              },
+            },
+          });
+          if (foundToken[0]) {
+            if (foundToken[0].expired > moment().utc()) {
+              next();
+            } else {
+              res.status(401).send('Unauthorized');
+            }
+          } else {
+            res.status(401).send('Unauthorized');
+          }
+        } catch (err) {
+          if (err.errors) {
+            res.status(400).json({
+              message: err.errors[0].message,
+            });
+          } else {
+            res.status(500).json('Internal Server Error');
+          }
+        }
       }
-    }
+    });
   });
 };
 
