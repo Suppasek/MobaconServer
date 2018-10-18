@@ -3,9 +3,9 @@ const bcrypt = require('bcryptjs');
 const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const models = require('../models');
+const config = require('../config/api-config');
 
 const op = Sequelize.Op;
-const secret = 'masa_secret';
 
 const storeToken = (token, expired) => {
   models.Tokens.create({
@@ -25,7 +25,7 @@ const getStaffToken = async (staffId) => {
   const token = await jwt.sign({
     data: staffData,
     exp: expired,
-  }, secret);
+  }, config.secret);
   storeToken(token, expired);
   return token;
 };
@@ -40,7 +40,7 @@ const getUserToken = async (userId) => {
   const token = await jwt.sign({
     data: userData,
     exp: expired,
-  }, secret);
+  }, config.secret);
   storeToken(token, expired);
   return token;
 };
@@ -57,7 +57,7 @@ const getTokenFromBody = (req, res, next) => {
 };
 const verifyToken = async (req, res, next) => {
   getTokenFromBody(req, res, async () => {
-    jwt.verify(req.token, secret, async (authError) => {
+    jwt.verify(req.token, config.secret, async (authError) => {
       if (authError) {
         res.status(401).send('Unauthorized');
       } else {
