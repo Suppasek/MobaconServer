@@ -1,5 +1,12 @@
 module.exports = (sequelize, DataTypes) => {
   const Users = sequelize.define('Users', {
+    roleId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+    },
     phoneNumber: {
       allowNull: false,
       unique: true,
@@ -22,6 +29,9 @@ module.exports = (sequelize, DataTypes) => {
       validate: {
         notEmpty: true,
       },
+    },
+    verified: {
+      type: DataTypes.ENUM('0', '1'),
     },
   }, {});
 

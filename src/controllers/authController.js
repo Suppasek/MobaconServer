@@ -1,47 +1,39 @@
-const Sequelize = require('sequelize');
-const bcrypt = require('bcryptjs');
 const moment = require('moment');
+const uniqid = require('uniqid');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const Sequelize = require('sequelize');
+
 const models = require('../models');
-const config = require('../config/api-config');
+const sendMail = require('./service/mailer');
+const config = require('../config/APIConfig');
+require('./service/passportService');
 
 const op = Sequelize.Op;
 
-const storeToken = (token, expired) => {
+const storeToken = (token, expired, createdBy) => {
   models.Tokens.create({
     token,
     expired,
+    createdBy,
   });
 };
-const getStaffToken = async (staffId) => {
-  const staff = await models.Staffs.findById(staffId);
-  const staffData = {
-    id: staff.dataValues.id,
-    carrier: staff.dataValues.carrier,
-    fullName: staff.dataValues.fullName,
-    email: staff.dataValues.email,
-  };
-  const expired = Math.floor(moment().utc().add(12, 'hours'));
-  const token = await jwt.sign({
-    data: staffData,
-    exp: expired,
-  }, config.secret);
-  storeToken(token, expired);
-  return token;
+const storeConfirmationToken = async (email, userId) => {
+  const token = await uniqid(await uniqid.time());
+  await models.ConfirmationTokens.create({
+    token,
+    createdBy: userId,
+  });
+  sendMail.sendVerifyMail(email, token);
 };
-const getUserToken = async (userId) => {
-  const user = await models.Users.findById(userId);
-  const userData = {
-    id: user.dataValues.id,
-    phoneNumber: user.dataValues.phoneNumber,
-    carrier: user.dataValues.carrier,
-  };
-  const expired = Math.floor(moment().utc().add(12, 'hours'));
+const getToken = async (user, time = 12) => {
+  const expired = Math.floor(moment().utc().add(time, 'hours'));
   const token = await jwt.sign({
-    data: userData,
+    data: user,
     exp: expired,
   }, config.secret);
-  storeToken(token, expired);
+  storeToken(token, expired, user.id);
   return token;
 };
 const getTokenFromBody = (req, res, next) => {
@@ -84,7 +76,7 @@ const verifyToken = async (req, res, next) => {
               message: err.errors[0].message,
             });
           } else {
-            res.status(500).json('Internal Server Error');
+            res.status(500).send('Internal Server Error');
           }
         }
       }
@@ -92,11 +84,12 @@ const verifyToken = async (req, res, next) => {
   });
 };
 
-// For web front-end
+// START WEB AUTHENTICATION SECTION
 const webSignup = async (req, res) => {
   try {
     const data = {
       fullName: req.body.fullName,
+      roleId: 1,
       carrier: req.body.carrier,
       email: req.body.email,
       password: req.body.password,
@@ -112,6 +105,8 @@ const webSignup = async (req, res) => {
       carrier: createdStaff.carrier,
       email: createdStaff.email,
     };
+    storeConfirmationToken(createdStaff.email, createdStaff.id);
+    // sendMail.sendVerifyMail(resData.email);
     res.status(201).json({
       message: 'created',
       data: resData,
@@ -122,41 +117,30 @@ const webSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).json('Internal Server Error');
+      res.status(500).send('Internal Server Error');
     }
   }
 };
 const webLogin = async (req, res) => {
-  try {
-    const staff = await models.Staffs.findAll({
-      where: {
-        email: {
-          [op.eq]: req.body.email,
-        },
-      },
-    });
-
-    if (staff[0] && req.body.password) {
-      const isStaff = await bcrypt.compare(req.body.password, staff[0].password);
-      if (isStaff) {
-        res.status(200).send({
-          token: await getStaffToken(staff[0].id),
-        });
-      } else {
-        res.status(401).send('Unauthorized');
-      }
+  passport.authenticate('web-login', async (error, staff, info) => {
+    if (error) {
+      res.status(500).send('Internal Server Error');
+    } else if (!staff) {
+      res.status(400).json(info);
     } else {
-      res.status(401).send('Unauthorized');
+      res.status(200).json({
+        token: await getToken(staff),
+      });
     }
-  } catch (err) {
-    res.status(500).json('Internal Server Error');
-  }
+  })(req, res);
 };
+// END WEB AUTHENTICATION SECTION
 
-// For mobile application
+// START MOBILE AUTHENTICATION SECTION
 const mobileSignup = async (req, res) => {
   try {
     const data = {
+      roleId: 2,
       phoneNumber: req.body.phoneNumber,
       carrier: req.body.carrier,
       password: req.body.password,
@@ -181,36 +165,53 @@ const mobileSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).json('Internal Server Error');
+      res.status(500).send('Internal Server Error');
     }
   }
 };
 const mobileLogin = async (req, res) => {
-  try {
-    const user = await models.Users.findAll({
+  passport.authenticate('mobile-login', async (error, user, info) => {
+    if (error) {
+      res.status(500).send('Internal Server Error');
+    } else if (!user) {
+      res.status(400).json(info);
+    } else {
+      res.status(200).json({
+        token: await getToken(user),
+      });
+    }
+  })(req, res);
+};
+// END MOBILE AUTHENTICATION SECTION
+
+// START VERIFICATION SECTION
+const verifyWithConfirmationToken = async (req, res) => {
+  const confirmationToken = await models.ConfirmationTokens.findOne({
+    where: {
+      token: {
+        [op.eq]: req.query.confirmation_token,
+      },
+    },
+  });
+  if (confirmationToken) {
+    const result = await models.Staffs.update({
+      verified: '1',
+    },
+    {
       where: {
-        phoneNumber: {
-          [op.eq]: req.body.phoneNumber,
-        },
+        id: confirmationToken.createdBy,
       },
     });
-
-    if (user[0] && req.body.password) {
-      const isUser = await bcrypt.compare(req.body.password, user[0].password);
-      if (isUser) {
-        res.status(200).send({
-          token: await getUserToken(user[0].id),
-        });
-      } else {
-        res.status(401).send('Unauthorized');
-      }
+    if (result) {
+      res.send('Verify account success.');
     } else {
-      res.status(401).send('Unauthorized');
+      res.send('Verify account failed.');
     }
-  } catch (err) {
-    res.status(500).json('Internal Server Error');
+  } else {
+    res.send('Verify account failed.');
   }
 };
+// END VERIFICATION SECTION
 
 module.exports = {
   getTokenFromBody,
@@ -219,4 +220,5 @@ module.exports = {
   webLogin,
   mobileSignup,
   mobileLogin,
+  verifyWithConfirmationToken,
 };

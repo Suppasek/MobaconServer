@@ -1,14 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
-  const Tokens = sequelize.define('Tokens', {
+  const ConfirmationTokens = sequelize.define('ConfirmationTokens', {
     token: {
       type: DataTypes.STRING(500),
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-    },
-    expired: {
-      type: DataTypes.DATE,
       allowNull: false,
       validate: {
         notEmpty: true,
@@ -23,5 +16,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {});
 
-  return Tokens;
+  return ConfirmationTokens;
 };
