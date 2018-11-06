@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Tokens = sequelize.define('Tokens', {
+  const StaffTokens = sequelize.define('UserTokens', {
     token: {
       type: DataTypes.STRING(500),
       allowNull: false,
@@ -23,5 +23,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {});
 
-  return Tokens;
+  return StaffTokens;
 };

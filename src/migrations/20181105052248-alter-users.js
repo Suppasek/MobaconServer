@@ -1,8 +1,8 @@
 module.exports = {
   up: (queryInterface, Sequelize) => queryInterface.addColumn('Users', 'roleId', {
     allowNull: false,
-    type: Sequelize.INTEGER,
     after: 'id',
+    type: Sequelize.INTEGER,
   })
     .then(() => queryInterface.addIndex('Users', ['roleId']))
     .then(() => queryInterface.addIndex('Users', ['carrier'])),

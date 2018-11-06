@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       },
     },
     verified: {
-      type: DataTypes.ENUM('0', '1'),
+      type: DataTypes.BOOLEAN,
     },
   }, {});
 
