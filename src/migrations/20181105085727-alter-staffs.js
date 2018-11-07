@@ -5,6 +5,6 @@ module.exports = {
     after: 'password',
     type: Sequelize.BOOLEAN,
   })
-    .then(() => queryInterface.addIndex('Staffs', ['verified'])),
+    .then(() => queryInterface.addIndex('Staffs', { fields: ['verified'], name: 'staffs_verified_idx' })),
   down: (queryInterface) => queryInterface.removeColumn('Staffs', 'verified'),
 };

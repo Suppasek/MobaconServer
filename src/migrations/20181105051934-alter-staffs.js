@@ -4,8 +4,8 @@ module.exports = {
     after: 'id',
     type: Sequelize.INTEGER,
   })
-    .then(() => queryInterface.addIndex('Staffs', ['roleId']))
-    .then(() => queryInterface.addIndex('Staffs', ['carrier'])),
+    .then(() => queryInterface.addIndex('Staffs', { fields: ['roleId'], name: 'staffs_roleId_idx' }))
+    .then(() => queryInterface.addIndex('Staffs', { fields: ['carrier'], name: 'staffs_carrier_idx' })),
   down: (queryInterface) => queryInterface.removeColumn('Staffs', 'roleId')
-    .then(() => queryInterface.removeIndex('Staffs', ['carrier'])),
+    .then(() => queryInterface.removeIndex('Staffs', 'staffs_carrier_idx')),
 };

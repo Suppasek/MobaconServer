@@ -1,4 +1,4 @@
-const moment = require('moment');
+const moment = require('moment-timezone');
 const uniqid = require('uniqid');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -6,14 +6,22 @@ const passport = require('passport');
 const Sequelize = require('sequelize');
 
 const models = require('../models');
-const sendMail = require('./service/mailer');
+const sendMail = require('./service/mailerService');
 const config = require('../config/APIConfig');
+const constant = require('../config/APIConstant');
 require('./service/passportService');
 
 const op = Sequelize.Op;
 
-const storeToken = (token, expired, createdBy) => {
-  models.Tokens.create({
+const storeStaffToken = (token, expired, createdBy) => {
+  models.StaffTokens.create({
+    token,
+    expired,
+    createdBy,
+  });
+};
+const storeUserToken = (token, expired, createdBy) => {
+  models.UserTokens.create({
     token,
     expired,
     createdBy,
@@ -28,12 +36,13 @@ const storeConfirmationToken = async (email, userId) => {
   sendMail.sendVerifyMail(email, token);
 };
 const getToken = async (user, time = 12) => {
-  const expired = Math.floor(moment().utc().add(time, 'hours'));
+  const expired = Math.floor(moment().tz(config.timezone).add(time, 'hours'));
   const token = await jwt.sign({
     data: user,
     exp: expired,
   }, config.secret);
-  storeToken(token, expired, user.id);
+  if (user.roleId === constant.STAFF) storeStaffToken(token, expired, user.id);
+  else if (user.roleId === constant.USER) storeUserToken(token, expired, user.id);
   return token;
 };
 const getTokenFromBody = (req, res, next) => {

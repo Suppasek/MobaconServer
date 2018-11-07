@@ -12,5 +12,5 @@ module.exports = {
       after: 'id',
       type: Sequelize.INTEGER,
     }))
-    .then(() => queryInterface.addIndex('Staffs', ['roleId'])),
+    .then(() => queryInterface.addIndex('Staffs', { fields: ['roleId'], name: 'staffs_roleId_idx' })),
 };
