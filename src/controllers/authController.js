@@ -45,53 +45,6 @@ const getToken = async (user, time = 12) => {
   else if (user.roleId === constant.USER) storeUserToken(token, expired, user.id);
   return token;
 };
-const getTokenFromBody = (req, res, next) => {
-  const bearerHeader = req.headers.authorization;
-  if (typeof bearerHeader !== 'undefined') {
-    const bearer = bearerHeader.split(' ');
-    const bearerToken = bearer[1];
-    req.token = bearerToken;
-    next();
-  } else {
-    res.status(401).send('Unauthorized');
-  }
-};
-const verifyToken = async (req, res, next) => {
-  getTokenFromBody(req, res, async () => {
-    jwt.verify(req.token, config.secret, async (authError) => {
-      if (authError) {
-        res.status(401).send('Unauthorized');
-      } else {
-        try {
-          const foundToken = await models.Tokens.findAll({
-            where: {
-              token: {
-                [op.eq]: req.token,
-              },
-            },
-          });
-          if (foundToken[0]) {
-            if (foundToken[0].expired > moment().utc()) {
-              next();
-            } else {
-              res.status(401).send('Unauthorized');
-            }
-          } else {
-            res.status(401).send('Unauthorized');
-          }
-        } catch (err) {
-          if (err.errors) {
-            res.status(400).json({
-              message: err.errors[0].message,
-            });
-          } else {
-            res.status(500).send('Internal Server Error');
-          }
-        }
-      }
-    });
-  });
-};
 
 // START WEB AUTHENTICATION SECTION
 const webSignup = async (req, res) => {
@@ -223,8 +176,6 @@ const verifyWithConfirmationToken = async (req, res) => {
 // END VERIFICATION SECTION
 
 module.exports = {
-  getTokenFromBody,
-  verifyToken,
   webSignup,
   webLogin,
   mobileSignup,
