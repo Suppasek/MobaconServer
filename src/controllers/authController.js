@@ -46,7 +46,7 @@ const getToken = async (user, time = 12) => {
   return token;
 };
 
-// START WEB AUTHENTICATION SECTION
+// WEB AUTHENTICATION
 const webSignup = async (req, res) => {
   try {
     const data = {
@@ -68,7 +68,6 @@ const webSignup = async (req, res) => {
       email: createdStaff.email,
     };
     storeConfirmationToken(createdStaff.email, createdStaff.id);
-    // sendMail.sendVerifyMail(resData.email);
     res.status(201).json({
       message: 'created',
       data: resData,
@@ -79,14 +78,14 @@ const webSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).send('Internal Server Error');
+      res.status(500).send('Internal server error');
     }
   }
 };
 const webLogin = async (req, res) => {
   passport.authenticate('web-login', async (error, staff, info) => {
     if (error) {
-      res.status(500).send('Internal Server Error');
+      res.status(500).send('Internal server error');
     } else if (!staff) {
       res.status(400).json(info);
     } else {
@@ -96,9 +95,21 @@ const webLogin = async (req, res) => {
     }
   })(req, res);
 };
-// END WEB AUTHENTICATION SECTION
+const webLogout = async (req, res) => {
+  passport.authenticate('web-logout', async (error, token, info) => {
+    if (error) {
+      res.status(500).send('Internal server error');
+    } else if (token) {
+      res.status(200).json(info);
+    } else if (info.constructor.name === 'Error') {
+      res.status(400).json({ message: 'No auth token' });
+    } else {
+      res.status(400).json(info);
+    }
+  })(req, res);
+};
 
-// START MOBILE AUTHENTICATION SECTION
+// MOBILE AUTHENTICATION
 const mobileSignup = async (req, res) => {
   try {
     const data = {
@@ -127,14 +138,14 @@ const mobileSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).send('Internal Server Error');
+      res.status(500).send('Internal server error');
     }
   }
 };
 const mobileLogin = async (req, res) => {
   passport.authenticate('mobile-login', async (error, user, info) => {
     if (error) {
-      res.status(500).send('Internal Server Error');
+      res.status(500).send('Internal server error');
     } else if (!user) {
       res.status(400).json(info);
     } else {
@@ -144,9 +155,21 @@ const mobileLogin = async (req, res) => {
     }
   })(req, res);
 };
-// END MOBILE AUTHENTICATION SECTION
+const mobileLogout = async (req, res) => {
+  passport.authenticate('mobile-logout', async (error, token, info) => {
+    if (error) {
+      res.status(500).send('Internal server error');
+    } else if (token) {
+      res.status(200).json(info);
+    } else if (info.constructor.name === 'Error') {
+      res.status(400).json({ message: 'No auth token' });
+    } else {
+      res.status(400).json(info);
+    }
+  })(req, res);
+};
 
-// START VERIFICATION SECTION
+// USER VERIFICATION WITH EMAIL
 const verifyWithConfirmationToken = async (req, res) => {
   const confirmationToken = await models.ConfirmationTokens.findOne({
     where: {
@@ -173,12 +196,13 @@ const verifyWithConfirmationToken = async (req, res) => {
     res.send('Verify account failed.');
   }
 };
-// END VERIFICATION SECTION
 
 module.exports = {
   webSignup,
   webLogin,
+  webLogout,
   mobileSignup,
   mobileLogin,
+  mobileLogout,
   verifyWithConfirmationToken,
 };

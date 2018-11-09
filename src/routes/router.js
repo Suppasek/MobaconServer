@@ -5,23 +5,21 @@ const testController = require('../controllers/testController');
 
 const router = express.Router();
 
-// START WEB SECTION
+// API ROUTING FOR WEB APPLICATION
 router.post('/mobacon/api/web/signup', authController.webSignup);
 router.post('/mobacon/api/web/login', authController.webLogin);
-// END WEB SECTION
+router.post('/mobacon/api/web/logout', authController.webLogout);
 
-// START MOBILE SECTION
+// API ROUTING FOR MOBILE APPLICATION
 router.post('/mobacon/api/mobile/signup', authController.mobileSignup);
 router.post('/mobacon/api/mobile/login', authController.mobileLogin);
-// END MOBILE SECTION
+router.post('/mobacon/api/mobile/logout', authController.mobileLogout);
 
-// START TEST SECTION
+// API ROUTING FOR TEST
 router.post('/mobacon/api/test', testController.test);
-// END TEST SECTION
 
-// START VERIFICATION WITH EMAIL SECTION
+// API ROUTING FOR USER VERIFICATION WITH EMAIL
 router.get('/confirm', authController.verifyWithConfirmationToken);
-// END VERIFICATION WITH EMAIL SECTION
 
 // NOT FOUND [404]
 router.all('*', (req, res) => {

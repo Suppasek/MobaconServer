@@ -12,7 +12,7 @@ const sendVerifyMail = (email, confirmationToken) => {
       to: email,
       subject: 'Confirm your account',
       // text: 'TEST send mail with NodeJS :',
-      html: `<a href="${apiConfig.baseUrl}:${apiConfig.port}/confirm?confirmation_token=${confirmationToken}">Confirm your account</a>`,
+      html: `<a href="${apiConfig.baseUrl}:${apiConfig.httpPort}/confirm?confirmation_token=${confirmationToken}">Confirm your account</a>`,
     };
 
     transporter.sendMail(mailOptions, (error) => {

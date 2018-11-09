@@ -44,7 +44,7 @@ passport.use('web-login', new LocalStrategy({
       done(null, false, { message: 'User not found' });
     }
   } catch (error) {
-    done(error, false, { message: 'Internal Server Error' });
+    done(error, false, { message: 'Internal server error' });
   }
 }));
 
@@ -80,7 +80,7 @@ passport.use('mobile-login', new LocalStrategy({
       done(null, false, { message: 'User not found' });
     }
   } catch (error) {
-    done(error, false, { message: 'Internal Server Error' });
+    done(error, false, { message: 'Internal server error' });
   }
 }));
 
@@ -94,22 +94,26 @@ passport.use('web-jwt', new JwtStrategy({
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
   if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
-    const foundToken = await models.StaffTokens.findOne({
-      where: {
-        token: {
-          [op.eq]: token,
+    try {
+      const foundToken = await models.StaffTokens.findOne({
+        where: {
+          token: {
+            [op.eq]: token,
+          },
+          createdBy: {
+            [op.eq]: jwtPayload.data.id,
+          },
         },
-        createdBy: {
-          [op.eq]: jwtPayload.data.id,
-        },
-      },
-    });
-    if (!foundToken) {
-      done(null, false, { message: 'Not found token' });
-    } else if (moment(foundToken.expired).tz(config.timezone) > moment().tz(config.timezone)) {
-      done(null, foundToken);
-    } else {
-      done(null, false, { message: 'Token has expired' });
+      });
+      if (!foundToken) {
+        done(null, false, { message: 'Invalid Token' });
+      } else if (moment(foundToken.expired).tz(config.timezone) > moment().tz(config.timezone)) {
+        done(null, foundToken);
+      } else {
+        done(null, false, { message: 'Token has expired' });
+      }
+    } catch (error) {
+      done(error, false, { message: 'Internal server error' });
     }
   } else {
     done(null, false, { message: 'Token has expired' });
@@ -137,7 +141,7 @@ passport.use('mobile-jwt', new JwtStrategy({
       },
     });
     if (!foundToken) {
-      done(null, false, { message: 'Not found token' });
+      done(null, false, { message: 'Invalid token' });
     } else if (moment(foundToken.expired).tz(config.timezone) > moment().tz(config.timezone)) {
       done(null, jwtPayload);
     } else {
@@ -147,3 +151,96 @@ passport.use('mobile-jwt', new JwtStrategy({
     done(null, false, { message: 'Token has expired' });
   }
 }));
+
+// STRATEGY FOR WEB LOGOUT
+passport.use('web-logout', new JwtStrategy({
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: config.secret,
+  ignoreExpiration: false,
+  passReqToCallback: true,
+  session: false,
+}, async (req, jwtPayload, done) => {
+  const token = req.headers.authorization.split(' ')[1];
+  if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+    try {
+      const foundToken = await models.StaffTokens.findOne({
+        where: {
+          token: {
+            [op.eq]: token,
+          },
+          createdBy: {
+            [op.eq]: jwtPayload.data.id,
+          },
+        },
+      });
+
+      if (foundToken.expired > moment().tz(config.timezone)) {
+        foundToken.update({
+          expired: moment(),
+        });
+        done(null, foundToken, { message: 'Logout successfully' });
+      } else {
+        done(null, false, { message: 'Token has already expired' });
+      }
+    } catch (error) {
+      done(error, false, { message: 'Internal server error' });
+    }
+  } else {
+    done(null, false, { message: 'Token has already expired' });
+  }
+}));
+
+// STRATEGY FOR MOBILE LOGOUT
+passport.use('mobile-logout', new JwtStrategy({
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: config.secret,
+  ignoreExpiration: false,
+  passReqToCallback: true,
+  session: false,
+}, async (req, jwtPayload, done) => {
+  const token = req.headers.authorization.split(' ')[1];
+  if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+    try {
+      const foundToken = await models.UserTokens.findOne({
+        where: {
+          token: {
+            [op.eq]: token,
+          },
+          createdBy: {
+            [op.eq]: jwtPayload.data.id,
+          },
+        },
+      });
+
+      if (foundToken.expired > moment().tz(config.timezone)) {
+        foundToken.update({
+          expired: moment(),
+        });
+        done(null, foundToken, { message: 'Logout successfully' });
+      } else {
+        done(null, false, { message: 'Token has already expired' });
+      }
+    } catch (error) {
+      done(error, false, { message: 'Internal server error' });
+    }
+  } else {
+    done(null, false, { message: 'Token has already expired' });
+  }
+}));
+
+// FUNCTION FOR RESPOND JWT FAILURES
+const checkJwtFailures = (req, res, next) => passport.authenticate('web-jwt', (error, jwtPayload, info) => {
+  if (error) {
+    res.status(500).send('Internal server error');
+  } else if (jwtPayload) {
+    next();
+  } else if (info.constructor.name === 'Error') {
+    res.status(401).json({ message: 'No auth token' });
+  } else {
+    res.status(401).json(info);
+  }
+})(req, res);
+
+module.exports = {
+  checkJwtFailures,
+};

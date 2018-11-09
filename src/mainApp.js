@@ -1,12 +1,11 @@
-// const fs = require('fs');
+const fs = require('fs');
+const http = require('http');
 const cors = require('cors');
-// const https = require('https');
+const https = require('https');
 const express = require('express');
 const bodyParser = require('body-parser');
 
 const config = require('./config/APIConfig');
-
-// const router = express.Router();
 const router = require('./routes/router').Router;
 
 const app = express().use(
@@ -18,15 +17,15 @@ const app = express().use(
   router,
 );
 
-// START HTTPS SECTION [DO NOT REMOVE]
-// https.createServer({
-//   key: fs.readFileSync('src/config/server.key'),
-//   cert: fs.readFileSync('src/config/server.cert'),
-// }, app).listen(port, () => {
-//   console.log(`start server at ${baseUrl}:${port}`);
-// });
-// END HTTPS SECTION
+// CREATE SERVER WITH HTTP
+http.createServer(app).listen(config.httpPort, () => {
+  console.log(`Start http server at\t ${config.baseUrl}:${config.httpPort}`);
+});
 
-app.listen(config.port, () => {
-  console.log(`start server at port ${config.baseUrl}:${config.port}`);
+// CREATE SERVER WITH HTTPS
+https.createServer({
+  key: fs.readFileSync('src/config/server.key'),
+  cert: fs.readFileSync('src/config/server.cert'),
+}, app).listen(config.httpsPort, () => {
+  console.log(`Start https server at\t ${config.baseUrl}:${config.httpsPort}`);
 });
