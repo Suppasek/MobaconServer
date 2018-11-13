@@ -1,9 +1,9 @@
-const moment = require('moment-timezone');
 const uniqid = require('uniqid');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const Sequelize = require('sequelize');
+const moment = require('moment-timezone');
 
 const models = require('../models');
 const sendMail = require('./service/mailerService');

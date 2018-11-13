@@ -5,8 +5,4 @@ module.exports = {
   socketPort: 8888,
   secret: 'masa_secret',
   timezone: 'Asia/Bangkok',
-  constant: {
-    STAFF: 1,
-    USER: 2,
-  },
 };
