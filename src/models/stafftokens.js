@@ -1,25 +1,25 @@
 module.exports = (sequelize, DataTypes) => {
   const StaffTokens = sequelize.define('StaffTokens', {
     token: {
-      type: DataTypes.STRING(500),
       allowNull: false,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.STRING(500),
     },
     expired: {
-      type: DataTypes.DATE,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.DATE,
     },
     createdBy: {
-      type: DataTypes.INTEGER,
       allowNull: false,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.INTEGER,
     },
   }, {});
 

@@ -1,5 +1,5 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('UserTokens', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('StaffTokens', {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -7,6 +7,7 @@ module.exports = {
       type: Sequelize.INTEGER,
     },
     token: {
+      unique: true,
       allowNull: false,
       type: Sequelize.STRING(500),
     },
@@ -16,7 +17,7 @@ module.exports = {
     },
     createdBy: {
       allowNull: false,
-      references: { model: 'Users', key: 'id' },
+      references: { model: 'Staffs', key: 'id' },
       type: Sequelize.INTEGER,
     },
     createdAt: {
@@ -27,6 +28,7 @@ module.exports = {
       allowNull: false,
       type: Sequelize.DATE,
     },
-  }),
-  down: (queryInterface) => queryInterface.dropTable('UserTokens'),
+  })
+    .then(() => queryInterface.addIndex('StaffTokens', { fields: ['expired'], name: 'staffTokens_expired_idx' })),
+  down: (queryInterface) => queryInterface.dropTable('StaffTokens'),
 };

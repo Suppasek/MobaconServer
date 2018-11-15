@@ -1,14 +1,13 @@
 module.exports = (sequelize, DataTypes) => {
-  const Roles = sequelize.define('Roles', {
-    role: {
-      unique: true,
+  const Carriers = sequelize.define('Carriers', {
+    name: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
-      type: DataTypes.STRING(50),
+      type: DataTypes.STRING(10),
     },
   }, {});
 
-  return Roles;
+  return Carriers;
 };

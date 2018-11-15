@@ -1,43 +1,55 @@
 module.exports = (sequelize, DataTypes) => {
   const Staffs = sequelize.define('Staffs', {
     roleId: {
-      type: DataTypes.INTEGER,
       allowNull: false,
+      defaultValue: 1,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.INTEGER,
     },
     fullName: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
       validate: {
         notEmpty: true,
       },
-    },
-    carrier: {
       type: DataTypes.STRING(50),
-      allowNull: true,
+    },
+    phoneNumber: {
       validate: {
         notEmpty: true,
+        isNumeric: true,
+        len: [9, 10],
       },
+      type: DataTypes.STRING(20),
     },
     email: {
-      type: DataTypes.STRING(100),
       allowNull: false,
-      unique: true,
       validate: {
         notEmpty: true,
         isEmail: true,
       },
+      type: DataTypes.STRING(50),
     },
     password: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.STRING(500),
     },
     verified: {
+      allowNull: false,
+      defaultValue: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.BOOLEAN,
+    },
+    activated: {
+      allowNull: false,
+      defaultValue: true,
+      validate: {
+        notEmpty: true,
+      },
       type: DataTypes.BOOLEAN,
     },
   }, {});

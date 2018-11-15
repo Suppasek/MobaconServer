@@ -1,19 +1,22 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('ConfirmationTokens', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('ConfirmationCodes', {
     id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
       type: Sequelize.INTEGER,
     },
-    token: {
+    code: {
       allowNull: false,
-      unique: true,
-      type: Sequelize.STRING(500),
+      type: Sequelize.STRING(4),
+    },
+    expired: {
+      allowNull: false,
+      type: Sequelize.DATE,
     },
     createdBy: {
       allowNull: false,
-      unique: true,
+      references: { model: 'Users', key: 'id' },
       type: Sequelize.INTEGER,
     },
     createdAt: {
@@ -25,5 +28,5 @@ module.exports = {
       type: Sequelize.DATE,
     },
   }),
-  down: (queryInterface) => queryInterface.dropTable('ConfirmationTokens'),
+  down: (queryInterface) => queryInterface.dropTable('ConfirmationCodes'),
 };

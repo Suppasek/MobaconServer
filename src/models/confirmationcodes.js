@@ -1,19 +1,13 @@
 module.exports = (sequelize, DataTypes) => {
-  const ConfirmationTokens = sequelize.define('ConfirmationTokens', {
-    userId: {
+  const ConfirmationCodes = sequelize.define('ConfirmationCodes', {
+    code: {
       allowNull: false,
       validate: {
         notEmpty: true,
+        isNumeric: true,
+        len: [4, 4],
       },
-      type: DataTypes.INTEGER,
-    },
-    token: {
-      unique: true,
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.STRING(500),
+      type: DataTypes.STRING(4),
     },
     expired: {
       allowNull: false,
@@ -31,5 +25,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {});
 
-  return ConfirmationTokens;
+  return ConfirmationCodes;
 };

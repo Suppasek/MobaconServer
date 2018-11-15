@@ -1,32 +1,28 @@
 module.exports = (sequelize, DataTypes) => {
-  const Requests = sequelize.define('Requests', {
-    userId: {
+  const ForgetPasswordTokens = sequelize.define('ForgetPasswordTokens', {
+    token: {
+      unique: true,
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.STRING(500),
+    },
+    expired: {
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.DATE,
+    },
+    createdBy: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
       type: DataTypes.INTEGER,
-    },
-    staffId: {
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.INTEGER,
-    },
-    billId: {
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.INTEGER,
-    },
-    status: {
-      allowNull: false,
-      defaultValue: 'Pending',
-      type: DataTypes.ENUM('Pending', 'Accepted', 'Rejected'),
     },
   }, {});
 
-  return Requests;
+  return ForgetPasswordTokens;
 };

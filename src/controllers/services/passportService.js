@@ -1,10 +1,10 @@
-const moment = require('moment-timezone');
+const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const Sequelize = require('sequelize');
-const bcrypt = require('bcryptjs');
-const LocalStrategy = require('passport-local').Strategy;
-const JwtStrategy = require('passport-jwt').Strategy;
+const moment = require('moment-timezone');
 const { ExtractJwt } = require('passport-jwt');
+const JwtStrategy = require('passport-jwt').Strategy;
+const LocalStrategy = require('passport-local').Strategy;
 
 const models = require('../../models');
 const config = require('../../config/APIConfig');
@@ -26,25 +26,45 @@ passport.use('web-login', new LocalStrategy({
         },
       },
     });
-    if (staff) {
-      const validatePassword = await bcrypt.compare(password, staff.password);
+
+    if (!staff) {
+      done(null, false, {
+        statusCode: 404,
+        message: 'User not found',
+      });
+    } else if (!staff.verified) {
+      done(null, false, {
+        statusCode: 403,
+        message: 'User is not verified',
+      });
+    } else if (!staff.activated) {
+      done(null, false, {
+        statusCode: 403,
+        message: 'User is not activated',
+      });
+    } else if (staff) {
+      const validatePassword = await bcrypt.compare(password, staff.password || 'none');
       if (validatePassword) {
         const staffData = {
           id: staff.id,
           roleId: staff.roleId,
           fullName: staff.fullName,
-          carrier: staff.carrier,
+          phoneNumber: staff.phoneNumber,
           email: staff.email,
         };
         done(null, staffData);
       } else {
-        done(null, false, { message: 'Invalid Password' });
+        done(null, false, {
+          statusCode: 400,
+          message: 'Invalid Password',
+        });
       }
-    } else {
-      done(null, false, { message: 'User not found' });
     }
   } catch (error) {
-    done(error, false, { message: 'Internal server error' });
+    done(error, false, {
+      statusCode: 500,
+      message: 'Internal server error',
+    });
   }
 }));
 
@@ -63,24 +83,41 @@ passport.use('mobile-login', new LocalStrategy({
         },
       },
     });
-    if (user) {
-      const validatePassword = await bcrypt.compare(password, user.password);
+
+    if (!user) {
+      done(null, false, {
+        statusCode: 404,
+        message: 'User not found',
+      });
+    } else if (!user.verified) {
+      done(null, false, {
+        statusCode: 403,
+        message: 'User is not verified',
+      });
+    } else if (user) {
+      const validatePassword = await bcrypt.compare(password, user.password || 'none');
       if (validatePassword) {
         const userData = {
           id: user.id,
           roleId: user.roleId,
+          planId: user.planId,
+          fullName: user.fullName,
           phoneNumber: user.phoneNumber,
           carrier: user.carrier,
         };
         done(null, userData);
       } else {
-        done(null, false, { message: 'Invalid Password' });
+        done(null, false, {
+          statusCode: 400,
+          message: 'Invalid Password',
+        });
       }
-    } else {
-      done(null, false, { message: 'User not found' });
     }
   } catch (error) {
-    done(error, false, { message: 'Internal server error' });
+    done(error, false, {
+      statusCode: 500,
+      message: 'Internal server error',
+    });
   }
 }));
 
@@ -108,7 +145,7 @@ passport.use('web-jwt', new JwtStrategy({
       if (!foundToken) {
         done(null, false, { message: 'Invalid Token' });
       } else if (moment(foundToken.expired).tz(config.timezone) > moment().tz(config.timezone)) {
-        done(null, foundToken);
+        done(null, jwtPayload);
       } else {
         done(null, false, { message: 'Token has expired' });
       }
@@ -174,9 +211,20 @@ passport.use('web-logout', new JwtStrategy({
         },
       });
 
-      if (foundToken.expired > moment().tz(config.timezone)) {
-        foundToken.update({
-          expired: moment(),
+      if (!foundToken) {
+        done(null, false, { message: 'Token has already expired' });
+      } else if (foundToken.expired > moment().tz(config.timezone)) {
+        await models.StaffTokens.update({
+          expired: moment().tz(config.timezone),
+        }, {
+          where: {
+            expired: {
+              [op.gt]: moment().tz(config.timezone),
+            },
+            createdBy: {
+              [op.eq]: jwtPayload.data.id,
+            },
+          },
         });
         done(null, foundToken, { message: 'Logout successfully' });
       } else {
@@ -212,9 +260,20 @@ passport.use('mobile-logout', new JwtStrategy({
         },
       });
 
-      if (foundToken.expired > moment().tz(config.timezone)) {
-        foundToken.update({
-          expired: moment(),
+      if (!foundToken) {
+        done(null, false, { message: 'Token has already expired' });
+      } else if (foundToken.expired > moment().tz(config.timezone)) {
+        await models.UserTokens.update({
+          expired: moment().tz(config.timezone),
+        }, {
+          where: {
+            expired: {
+              [op.gt]: moment().tz(config.timezone),
+            },
+            createdBy: {
+              [op.eq]: jwtPayload.data.id,
+            },
+          },
         });
         done(null, foundToken, { message: 'Logout successfully' });
       } else {
@@ -233,7 +292,7 @@ const checkJwtFailures = (req, res, next) => passport.authenticate('web-jwt', (e
   if (error) {
     res.status(500).send('Internal server error');
   } else if (jwtPayload) {
-    next();
+    next(jwtPayload.data);
   } else if (info.constructor.name === 'Error') {
     res.status(401).json({ message: 'No auth token' });
   } else {
