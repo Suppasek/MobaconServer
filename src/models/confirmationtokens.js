@@ -1,36 +1,35 @@
 module.exports = (sequelize, DataTypes) => {
-  const Staffs = sequelize.define('Staffs', {
-    fullName: {
-      type: DataTypes.STRING(100),
+  const ConfirmationTokens = sequelize.define('ConfirmationTokens', {
+    userId: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.INTEGER,
     },
-    carrier: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      validate: {
-        notEmpty: true,
-      },
-    },
-    email: {
-      type: DataTypes.STRING(100),
-      allowNull: false,
+    token: {
       unique: true,
-      validate: {
-        notEmpty: true,
-        isEmail: true,
-      },
-    },
-    password: {
-      type: DataTypes.STRING(255),
       allowNull: false,
       validate: {
         notEmpty: true,
       },
+      type: DataTypes.STRING(500),
+    },
+    expired: {
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.DATE,
+    },
+    createdBy: {
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.INTEGER,
     },
   }, {});
 
-  return Staffs;
+  return ConfirmationTokens;
 };

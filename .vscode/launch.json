@@ -10,11 +10,5 @@
             "name": "Launch Program",
             "program": "${workspaceFolder}\\src\\mainApp.js"
         },
-        {
-            "type": "node",
-            "request": "launch",
-            "name": "Launch Program",
-            "program": "${workspaceFolder}/src/models/staffs.js"
-        },
     ]
 }

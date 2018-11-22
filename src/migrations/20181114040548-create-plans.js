@@ -1,26 +1,29 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('Staffs', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('Plans', {
     id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
       type: Sequelize.INTEGER,
     },
-    fullName: {
-      allowNull: false,
-      type: Sequelize.STRING(100),
-    },
-    carrier: {
-      type: Sequelize.STRING(50),
-    },
-    email: {
-      allowNull: false,
+    name: {
       unique: true,
+      allowNull: false,
       type: Sequelize.STRING(100),
     },
-    password: {
+    chatEnabled: {
       allowNull: false,
-      type: Sequelize.STRING(255),
+      type: Sequelize.BOOLEAN,
+    },
+    historyEnabled: {
+      allowNull: false,
+      type: Sequelize.BOOLEAN,
+    },
+    startAt: {
+      type: Sequelize.DATE,
+    },
+    endAt: {
+      type: Sequelize.DATE,
     },
     createdAt: {
       allowNull: false,
@@ -31,5 +34,5 @@ module.exports = {
       type: Sequelize.DATE,
     },
   }),
-  down: (queryInterface) => queryInterface.dropTable('Staffs'),
+  down: (queryInterface) => queryInterface.dropTable('Plans'),
 };

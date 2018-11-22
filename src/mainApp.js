@@ -1,46 +1,59 @@
-const express = require('express');
+const fs = require('fs');
+const http = require('http');
 const cors = require('cors');
 const https = require('https');
-const fs = require('fs');
+const express = require('express');
+// const socketio = require('socket.io');
 const bodyParser = require('body-parser');
-const config = require('./config/api-config');
-const userController = require('./controllers/authController');
 
-const app = express().use(
-  bodyParser.json(),
-  bodyParser.urlencoded({
-    extended: true,
-  }),
-  cors(),
-);
+const config = require('./config/APIConfig');
+const router = require('./routes/router').Router;
 
-// web
-app.post('/mobacon/api/web/signup', userController.webSignup);
-app.post('/mobacon/api/web/login', userController.webLogin);
+require('./config/APIConstant');
+require('./controllers/services/passportService');
 
-// mobile
-app.post('/mobacon/api/mobile/signup', userController.mobileSignup);
-app.post('/mobacon/api/mobile/login', userController.mobileLogin);
-
-// test
-const testController = require('./controllers/testController');
-
-app.post('/mobacon/api/test', testController.test);
-
-// not found
-app.all('*', (req, res) => {
-  res.status(404).json({
-    message: 'not found',
-  });
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/mobacon/api/', router);
+app.use((req, res, next) => {
+  if (req.secure) {
+    next();
+  } else {
+    res.redirect(`https://${config.baseUrl}:${config.httpsPort}${req.url}`);
+  }
 });
 
-// https.createServer({
-//   key: fs.readFileSync('src/config/server.key'),
-//   cert: fs.readFileSync('src/config/server.cert'),
-// }, app).listen(port, () => {
-//   console.log(`start server at ${baseUrl}:${port}`);
+// CREATE SERVER WITH HTTP
+const httpServer = http.createServer(app).listen(config.httpPort, () => {
+  console.clear();
+  console.log(`Start http server at\t ${config.baseUrl}:${config.httpPort}`);
+});
+
+// CREATE SERVER WITH HTTPS
+const httpsServer = https.createServer({
+  key: fs.readFileSync('src/config/server.key'),
+  cert: fs.readFileSync('src/config/server.cert'),
+}, app).listen(config.httpsPort, () => {
+  console.log(`Start https server at\t ${config.baseUrl}:${config.httpsPort}`);
+});
+
+module.exports = {
+  HttpServer: httpServer,
+  HttpsServer: httpsServer,
+};
+
+// const io = socketio(server);
+
+// io.on('connection', (socket) => {
+//   // io.sockets.connected[socket.id].emit('chat message', socket.id);
+//   socket.emit('chat message', socket.id);
+//   console.log('[+] User connected');
+//   socket
+//     .on('disconnect', () => console.log('[-] User disconnected'))
+//     .on('chat message', (msg) => {
+//       console.log(`message: ${msg}`);
+//       io.emit('chat message', msg);
+//     });
 // });
-
-app.listen(config.port, () => {
-  console.log(`start server at port ${config.baseUrl}:${config.port}`);
-});

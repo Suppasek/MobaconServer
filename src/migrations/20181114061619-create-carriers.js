@@ -1,19 +1,15 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('Tokens', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('Carriers', {
     id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
       type: Sequelize.INTEGER,
     },
-    token: {
-      allowNull: false,
+    name: {
       unique: true,
-      type: Sequelize.STRING(500),
-    },
-    expired: {
       allowNull: false,
-      type: Sequelize.DATE,
+      type: Sequelize.STRING(10),
     },
     createdAt: {
       allowNull: false,
@@ -24,5 +20,5 @@ module.exports = {
       type: Sequelize.DATE,
     },
   }),
-  down: (queryInterface) => queryInterface.dropTable('Tokens'),
+  down: (queryInterface) => queryInterface.dropTable('Carriers'),
 };

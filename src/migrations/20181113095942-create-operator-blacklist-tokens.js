@@ -1,22 +1,20 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('Users', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('OperatorBlacklistTokens', {
     id: {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
       type: Sequelize.INTEGER,
     },
-    phoneNumber: {
-      allowNull: false,
+    token: {
       unique: true,
-      type: Sequelize.STRING(20),
-    },
-    carrier: {
-      type: Sequelize.STRING(50),
-    },
-    password: {
       allowNull: false,
-      type: Sequelize.STRING(255),
+      type: Sequelize.STRING(500),
+    },
+    createdBy: {
+      allowNull: false,
+      references: { model: 'Operators', key: 'id' },
+      type: Sequelize.INTEGER,
     },
     createdAt: {
       allowNull: false,
@@ -27,5 +25,5 @@ module.exports = {
       type: Sequelize.DATE,
     },
   }),
-  down: (queryInterface) => queryInterface.dropTable('Users'),
+  down: (queryInterface) => queryInterface.dropTable('OperatorBlacklistTokens'),
 };

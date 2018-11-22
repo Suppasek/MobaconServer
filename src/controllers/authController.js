@@ -1,167 +1,240 @@
-const Sequelize = require('sequelize');
+// const fs = require('fs');
+const path = require('path');
+// const uniqid = require('uniqid');
 const bcrypt = require('bcryptjs');
-const moment = require('moment');
-const jwt = require('jsonwebtoken');
-const models = require('../models');
-const config = require('../config/api-config');
+// const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const Sequelize = require('sequelize');
+const moment = require('moment-timezone');
+
+const config = require('../config/APIConfig');
+// const constant = require('../config/APIConstant');
+const tokenHelper = require('../helpers/tokenHelper');
+const emailHelper = require('../helpers/emailHelper');
+const passportService = require('./services/passportService');
+const validationHelper = require('../helpers/validationHelper');
+const multerService = require('./services/multerService');
 
 const op = Sequelize.Op;
+const {
+  Roles,
+  Operators,
+  Users,
+  ConfirmationTokens,
+} = require('../models');
 
-const storeToken = (token, expired) => {
-  models.Tokens.create({
-    token,
-    expired,
+
+// METHODS
+
+
+// WEB AUTHENTICATION
+const webLogin = async (req, res) => {
+  passport.authenticate('web-login', async (error, operator, info) => {
+    if (error) {
+      res.status(500).send('Internal server error');
+    } else if (!operator) {
+      if (!info.status) {
+        res.status(400).json({
+          message: info.message,
+        });
+      } else {
+        res.status(info.status).json({
+          message: info.message,
+        });
+      }
+    } else {
+      res.status(200).json({
+        info: operator,
+        token: await tokenHelper.getToken(operator),
+      });
+    }
+  })(req, res);
+};
+const webLogout = async (req, res) => {
+  passport.authenticate('web-logout', async (error, token, info) => {
+    if (error) {
+      res.status(500).send('Internal server error');
+    } else if (token) {
+      res.status(200).json(info);
+    } else if (info.constructor.name === 'Error') {
+      res.status(400).json({ message: 'No auth token' });
+    } else {
+      res.status(400).json(info);
+    }
+  })(req, res);
+};
+const createOperator = async (req, res) => {
+  multerService.validateUploadImage(req, res, async () => {
+    passportService.checkJwtFailures(req, res, (operator, newToken) => {
+      validationHelper.bodyValidator(req, res, ['fullName', 'email', 'roleId'], async () => {
+        validationHelper.operatorCreationValidator(req, res, operator, newToken, async () => {
+          try {
+            const newOperator = await Operators.create({
+              roleId: req.body.roleId,
+              fullName: req.body.fullName,
+              phoneNumber: req.body.phoneNumber,
+              email: req.body.email,
+              imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
+              verified: false,
+              activated: true,
+            });
+            tokenHelper.storeConfirmationToken(newOperator.email, newOperator.id, 48);
+
+            res.status(201).json({
+              token: newToken,
+              message: 'Create new operator successfully',
+            });
+          } catch (err) {
+            if (req.file) {
+              multerService.removeOperatorImageByPath(req.file.path);
+            }
+
+            if (err.errors) {
+              res.status(400).json({
+                token: newToken,
+                message: err.errors[0].message,
+              });
+            } else {
+              res.status(500).json({
+                token: newToken,
+                message: 'Internal server error',
+              });
+            }
+          }
+        });
+      });
+    });
   });
 };
-const getStaffToken = async (staffId) => {
-  const staff = await models.Staffs.findById(staffId);
-  const staffData = {
-    id: staff.dataValues.id,
-    carrier: staff.dataValues.carrier,
-    fullName: staff.dataValues.fullName,
-    email: staff.dataValues.email,
-  };
-  const expired = Math.floor(moment().utc().add(12, 'hours'));
-  const token = await jwt.sign({
-    data: staffData,
-    exp: expired,
-  }, config.secret);
-  storeToken(token, expired);
-  return token;
-};
-const getUserToken = async (userId) => {
-  const user = await models.Users.findById(userId);
-  const userData = {
-    id: user.dataValues.id,
-    phoneNumber: user.dataValues.phoneNumber,
-    carrier: user.dataValues.carrier,
-  };
-  const expired = Math.floor(moment().utc().add(12, 'hours'));
-  const token = await jwt.sign({
-    data: userData,
-    exp: expired,
-  }, config.secret);
-  storeToken(token, expired);
-  return token;
-};
-const getTokenFromBody = (req, res, next) => {
-  const bearerHeader = req.headers.authorization;
-  if (typeof bearerHeader !== 'undefined') {
-    const bearer = bearerHeader.split(' ');
-    const bearerToken = bearer[1];
-    req.token = bearerToken;
-    next();
-  } else {
-    res.status(401).send('Unauthorized');
-  }
-};
-const verifyToken = async (req, res, next) => {
-  getTokenFromBody(req, res, async () => {
-    jwt.verify(req.token, config.secret, async (authError) => {
-      if (authError) {
-        res.status(401).send('Unauthorized');
-      } else {
+const editOperator = async (req, res) => {
+  multerService.validateUploadImage(req, res, async () => {
+    passportService.checkJwtFailures(req, res, (operator, newToken) => {
+      validationHelper.bodyValidator(req, res, [], async () => {
         try {
-          const foundToken = await models.Tokens.findAll({
+          const foundOperator = await Operators.findOne({
             where: {
-              token: {
-                [op.eq]: req.token,
+              id: {
+                [op.eq]: operator.id,
+              },
+            },
+            include: [{
+              model: Roles,
+            }],
+          });
+
+          const updatedOperator = await foundOperator.update({
+            fullName: req.body.fullName,
+            phoneNumber: req.body.phoneNumber,
+            imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
+          }, {
+            where: {
+              id: {
+                [op.eq]: operator.id,
               },
             },
           });
-          if (foundToken[0]) {
-            if (foundToken[0].expired > moment().utc()) {
-              next();
-            } else {
-              res.status(401).send('Unauthorized');
-            }
-          } else {
-            res.status(401).send('Unauthorized');
+
+          res.status(200).json({
+            info: {
+              id: updatedOperator.id,
+              role: {
+                id: updatedOperator.Role.id,
+                name: updatedOperator.Role.name,
+              },
+              fullName: updatedOperator.fullName,
+              phoneNumber: updatedOperator.phoneNumber,
+              email: updatedOperator.email,
+              imagePath: updatedOperator.imagePath,
+            },
+            token: newToken,
+            message: 'update operator information successfully',
+          });
+
+          if (operator.imagePath) {
+            const imagePath = operator.imagePath.split('/');
+            const imageName = imagePath[imagePath.length - 1];
+            multerService.removeOperatorImageByName(imageName);
           }
         } catch (err) {
+          if (req.file) {
+            multerService.removeOperatorImageByPath(req.file.path);
+          }
+
           if (err.errors) {
             res.status(400).json({
+              token: newToken,
               message: err.errors[0].message,
             });
           } else {
-            res.status(500).json('Internal Server Error');
+            res.status(500).json({
+              token: newToken,
+              message: 'Internal server error',
+            });
           }
+        }
+      });
+    });
+  });
+};
+const activateOperator = async (req, res) => {
+  passportService.checkJwtFailures(req, res, (operator, newToken) => {
+    validationHelper.administratorValidator(req, res, operator, newToken, async () => {
+      try {
+        const foundOperator = await Operators.findOne({
+          where: {
+            id: {
+              [op.eq]: req.params.userId,
+            },
+          },
+        });
+
+        if (foundOperator.id === operator.id) {
+          res.status(400).json({
+            token: newToken,
+            message: 'cannot activate or deactivate yourself',
+          });
+        } else if (foundOperator) {
+          foundOperator.update({
+            activated: !foundOperator.activated,
+          }).then(() => {
+            res.status(200).json({
+              token: newToken,
+              message: !foundOperator.activated ? 'deactivated operator successfully' : 'activated operator successfully',
+            });
+          });
+        } else {
+          res.status(404).json({
+            token: newToken,
+            message: 'user not found',
+          });
+        }
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
         }
       }
     });
   });
 };
 
-// For web front-end
-const webSignup = async (req, res) => {
-  try {
-    const data = {
-      fullName: req.body.fullName,
-      carrier: req.body.carrier,
-      email: req.body.email,
-      password: req.body.password,
-    };
-    const createdStaff = await models.Staffs.create(data);
-    bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then((hashed) => {
-      createdStaff.update({
-        password: hashed,
-      });
-    });
-    const resData = {
-      fullName: createdStaff.fullName,
-      carrier: createdStaff.carrier,
-      email: createdStaff.email,
-    };
-    res.status(201).json({
-      message: 'created',
-      data: resData,
-    });
-  } catch (err) {
-    if (err.errors) {
-      res.status(400).json({
-        message: err.errors[0].message,
-      });
-    } else {
-      res.status(500).json('Internal Server Error');
-    }
-  }
-};
-const webLogin = async (req, res) => {
-  try {
-    const staff = await models.Staffs.findAll({
-      where: {
-        email: {
-          [op.eq]: req.body.email,
-        },
-      },
-    });
-
-    if (staff[0] && req.body.password) {
-      const isStaff = await bcrypt.compare(req.body.password, staff[0].password);
-      if (isStaff) {
-        res.status(200).send({
-          token: await getStaffToken(staff[0].id),
-        });
-      } else {
-        res.status(401).send('Unauthorized');
-      }
-    } else {
-      res.status(401).send('Unauthorized');
-    }
-  } catch (err) {
-    res.status(500).json('Internal Server Error');
-  }
-};
-
-// For mobile application
+// MOBILE AUTHENTICATION
 const mobileSignup = async (req, res) => {
   try {
     const data = {
+      roleId: 2,
       phoneNumber: req.body.phoneNumber,
       carrier: req.body.carrier,
       password: req.body.password,
     };
-    const createdUser = await models.Users.create(data);
+    const createdUser = await Users.create(data);
     bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then((hashed) => {
       createdUser.update({
         password: hashed,
@@ -181,42 +254,221 @@ const mobileSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).json('Internal Server Error');
+      res.status(500).send('Internal server error');
     }
   }
 };
 const mobileLogin = async (req, res) => {
-  try {
-    const user = await models.Users.findAll({
-      where: {
-        phoneNumber: {
-          [op.eq]: req.body.phoneNumber,
-        },
-      },
-    });
+  passport.authenticate('mobile-login', async (error, user, info) => {
+    if (error) {
+      res.status(500).send('Internal server error');
+    } else if (!user) {
+      res.status(info.status).json({
+        message: info.message,
+      });
+    } else {
+      res.status(200).json({
+        token: await tokenHelper.getToken(user),
+      });
+    }
+  })(req, res);
+};
+const mobileLogout = async (req, res) => {
+  passport.authenticate('mobile-logout', async (error, token, info) => {
+    if (error) {
+      res.status(500).send('Internal server error');
+    } else if (token) {
+      res.status(200).json(info);
+    } else if (info.constructor.name === 'Error') {
+      res.status(400).json({ message: 'No auth token' });
+    } else {
+      res.status(400).json(info);
+    }
+  })(req, res);
+};
 
-    if (user[0] && req.body.password) {
-      const isUser = await bcrypt.compare(req.body.password, user[0].password);
-      if (isUser) {
-        res.status(200).send({
-          token: await getUserToken(user[0].id),
+// USER VERIFICATION WITH EMAIL
+const getVerifyWithConfirmationTokenPage = async (req, res) => {
+  res.sendFile(path.join(__dirname, './templates/confirmationPage.html'));
+};
+const sendVerificationEmail = async (req, res) => {
+  passportService.checkJwtFailures(req, res, (operator) => {
+    validationHelper.bodyValidator(req, res, ['userId'], async (body) => {
+      const foundOperator = await Operators.findOne({
+        where: {
+          id: {
+            [op.eq]: body.userId,
+          },
+        },
+      });
+
+      if (!foundOperator) {
+        res.status(404).json({
+          message: 'User not found',
+        });
+      } else if (foundOperator.verified) {
+        res.status(400).json({
+          message: 'User has verified',
         });
       } else {
-        res.status(401).send('Unauthorized');
+        tokenHelper.storeConfirmationTokenByOperator(foundOperator.email, foundOperator.id, operator.id, 48);
+        res.status(200).json({
+          message: 'Send account verification email successfully',
+        });
       }
-    } else {
-      res.status(401).send('Unauthorized');
+    });
+  });
+};
+const verifyWithConfirmationToken = (req, res) => {
+  validationHelper.bodyValidator(req, res, ['password'], () => {
+    validationHelper.queryValidator(req, res, ['confirmation_token'], async () => {
+      try {
+        const confirmationToken = await ConfirmationTokens.findOne({
+          where: {
+            token: {
+              [op.eq]: req.query.confirmation_token,
+            },
+          },
+        });
+
+        if (!confirmationToken) {
+          res.status(400).json({
+            message: 'Token is invalid',
+          });
+        } else if (confirmationToken.expired > moment().tz(config.timezone)) {
+          bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then(async (hashed) => {
+            const result = await Operators.update({
+              password: hashed,
+              verified: true,
+            }, {
+              where: {
+                id: {
+                  [op.eq]: confirmationToken.createdBy,
+                },
+              },
+            });
+            if (!result) {
+              res.status(500).send('Internal server error');
+            } else {
+              confirmationToken.update({
+                expired: moment().tz(config.timezone),
+              });
+              res.status(200).json({
+                message: 'Verify account successfully',
+              });
+            }
+          });
+        } else {
+          res.status(400).json({
+            message: 'Token has expired',
+          });
+        }
+      } catch (err) {
+        res.status(500).send('Internal server error');
+      }
+    });
+  });
+};
+const sendChangePasswordEmail = async (req, res) => {
+  validationHelper.bodyValidator(req, res, ['email'], async (body) => {
+    try {
+      const operator = await Operators.findOne({
+        where: {
+          email: {
+            [op.eq]: body.email,
+          },
+        },
+      });
+
+      if (!operator) {
+        res.status(404).json({
+          message: 'User not found',
+        });
+      } else if (!operator.verified) {
+        res.status(403).json({
+          message: 'User has not verified',
+        });
+      } else {
+        const forgetPasswordToken = await tokenHelper.storeForgetPasswordToken(operator, 48);
+        if (!forgetPasswordToken) {
+          res.status(500).send('Internal server error');
+        } else {
+          emailHelper.sendChangePasswordMail(operator.email, forgetPasswordToken.token);
+          res.status(200).json({
+            message: 'Send email for change password successfully',
+          });
+        }
+      }
+    } catch (err) {
+      res.status(500).send('Internal server error');
     }
-  } catch (err) {
-    res.status(500).json('Internal Server Error');
-  }
+  });
+};
+const changePasswordwithChangePasswordToken = async (req, res) => {
+  validationHelper.bodyValidator(req, res, ['password'], () => {
+    validationHelper.queryValidator(req, res, ['change_password_token'], async () => {
+      try {
+        const confirmationToken = await ConfirmationTokens.findOne({
+          where: {
+            token: {
+              [op.eq]: req.query.confirmation_token,
+            },
+          },
+        });
+
+        if (!confirmationToken) {
+          res.status(400).json({
+            message: 'Token is invalid',
+          });
+        } else if (confirmationToken.expired > moment().tz(config.timezone)) {
+          bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then(async (hashed) => {
+            const result = await Operators.update({
+              password: hashed,
+              verified: true,
+            }, {
+              where: {
+                id: {
+                  [op.eq]: confirmationToken.createdBy,
+                },
+              },
+            });
+            if (!result) {
+              res.status(500).send('Internal server error');
+            } else {
+              confirmationToken.update({
+                expired: moment().tz(config.timezone),
+              });
+              res.status(200).json({
+                message: 'Change password successfully',
+              });
+            }
+          });
+        } else {
+          res.status(400).json({
+            message: 'Token has expired',
+          });
+        }
+      } catch (err) {
+        res.status(500).send('Internal server error');
+      }
+    });
+  });
 };
 
 module.exports = {
-  getTokenFromBody,
-  verifyToken,
-  webSignup,
   webLogin,
+  webLogout,
+  createOperator,
+  editOperator,
+  activateOperator,
+
   mobileSignup,
   mobileLogin,
+  mobileLogout,
+
+  getVerifyWithConfirmationTokenPage, // TEMPORARILY USED
+  sendVerificationEmail,
+  verifyWithConfirmationToken,
+  sendChangePasswordEmail,
+  changePasswordwithChangePasswordToken,
 };
