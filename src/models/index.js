@@ -32,4 +32,9 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
+db.Operators = require('./operators')(sequelize, Sequelize);
+db.Roles = require('./roles')(sequelize, Sequelize);
+
+db.Operators.belongsTo(db.Roles, { foreignKey: 'roleId' });
+
 module.exports = db;

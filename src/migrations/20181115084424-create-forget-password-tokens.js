@@ -16,7 +16,7 @@ module.exports = {
     },
     createdBy: {
       allowNull: false,
-      references: { model: 'Staffs', key: 'id' },
+      references: { model: 'Operators', key: 'id' },
       type: Sequelize.INTEGER,
     },
     createdAt: {

@@ -1,18 +1,11 @@
 module.exports = (sequelize, DataTypes) => {
-  const UserTokens = sequelize.define('UserTokens', {
+  const UserBlacklistTokens = sequelize.define('UserBlacklistTokens', {
     token: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
       type: DataTypes.STRING(500),
-    },
-    expired: {
-      allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.DATE,
     },
     createdBy: {
       allowNull: false,
@@ -23,5 +16,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {});
 
-  return UserTokens;
+  return UserBlacklistTokens;
 };

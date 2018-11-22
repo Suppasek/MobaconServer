@@ -1,5 +1,5 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('Staffs', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('Operators', {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -26,6 +26,9 @@ module.exports = {
     password: {
       type: Sequelize.STRING(500),
     },
+    imagePath: {
+      type: Sequelize.STRING(255),
+    },
     verified: {
       allowNull: false,
       defaultValue: false,
@@ -45,8 +48,8 @@ module.exports = {
       type: Sequelize.DATE,
     },
   })
-    .then(() => queryInterface.addIndex('Staffs', { fields: ['roleId'], name: 'staffs_roleId_idx' }))
-    .then(() => queryInterface.addIndex('Staffs', { fields: ['verified'], name: 'staffs_verified_idx' }))
-    .then(() => queryInterface.addIndex('Staffs', { fields: ['activated'], name: 'staffs_activated_idx' })),
-  down: (queryInterface) => queryInterface.dropTable('Staffs'),
+    .then(() => queryInterface.addIndex('Operators', { fields: ['roleId'], name: 'operators_roleId_idx' }))
+    .then(() => queryInterface.addIndex('Operators', { fields: ['verified'], name: 'operators_verified_idx' }))
+    .then(() => queryInterface.addIndex('Operators', { fields: ['activated'], name: 'operators_activated_idx' })),
+  down: (queryInterface) => queryInterface.dropTable('Operators'),
 };

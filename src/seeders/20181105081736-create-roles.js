@@ -1,12 +1,17 @@
 module.exports = {
   up: (queryInterface, Sequelize) => queryInterface.bulkInsert('Roles', [{
     id: 1,
-    role: 'Operator',
+    name: 'Administrator',
     createdAt: Sequelize.fn('NOW'),
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 2,
-    role: 'User',
+    name: 'Operator',
+    createdAt: Sequelize.fn('NOW'),
+    updatedAt: Sequelize.fn('NOW'),
+  }, {
+    id: 3,
+    name: 'User',
     createdAt: Sequelize.fn('NOW'),
     updatedAt: Sequelize.fn('NOW'),
   }], {}),

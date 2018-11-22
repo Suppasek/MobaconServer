@@ -1,5 +1,5 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('UserTokens', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('UserBlacklistTokens', {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -10,10 +10,6 @@ module.exports = {
       unique: true,
       allowNull: false,
       type: Sequelize.STRING(500),
-    },
-    expired: {
-      allowNull: false,
-      type: Sequelize.DATE,
     },
     createdBy: {
       allowNull: false,
@@ -28,7 +24,6 @@ module.exports = {
       allowNull: false,
       type: Sequelize.DATE,
     },
-  })
-    .then(() => queryInterface.addIndex('UserTokens', { fields: ['expired'], name: 'userTokens_expired_idx' })),
-  down: (queryInterface) => queryInterface.dropTable('UserTokens'),
+  }),
+  down: (queryInterface) => queryInterface.dropTable('UserBlacklistTokens'),
 };

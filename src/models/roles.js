@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
   const Roles = sequelize.define('Roles', {
-    role: {
+    name: {
       unique: true,
       allowNull: false,
       validate: {

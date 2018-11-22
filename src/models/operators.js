@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-  const Staffs = sequelize.define('Staffs', {
+  const Operators = sequelize.define('Operators', {
     roleId: {
       allowNull: false,
       defaultValue: 1,
@@ -9,16 +9,16 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
     },
     fullName: {
-      validate: {
-        notEmpty: true,
-      },
       type: DataTypes.STRING(50),
     },
     phoneNumber: {
       validate: {
-        notEmpty: true,
-        isNumeric: true,
-        len: [9, 10],
+        isPhoneNumber: (value) => {
+          const regex = new RegExp('^[0-9]*$', 'gm');
+          if (!regex.test(value) || value.length > 20) {
+            throw new Error('Validation on phoneNumber failed');
+          }
+        },
       },
       type: DataTypes.STRING(20),
     },
@@ -35,6 +35,12 @@ module.exports = (sequelize, DataTypes) => {
         notEmpty: true,
       },
       type: DataTypes.STRING(500),
+    },
+    imagePath: {
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.STRING(255),
     },
     verified: {
       allowNull: false,
@@ -54,5 +60,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {});
 
-  return Staffs;
+  return Operators;
 };
