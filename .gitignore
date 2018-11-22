@@ -74,3 +74,5 @@ typings/
 
 # mobacon-server
 assets/
+src/config/APIConfig.js
+src/config/config.js
