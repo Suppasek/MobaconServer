@@ -3,7 +3,8 @@ const path = require('path');
 const express = require('express');
 
 const authController = require('../controllers/authController');
-// const operatorController = require('../controllers/operatorController');
+const operatorController = require('../controllers/operatorController');
+const planController = require('../controllers/planController');
 
 const router = express.Router();
 
@@ -11,11 +12,14 @@ const router = express.Router();
 router.post('/web/login', authController.webLogin);
 router.post('/web/logout', authController.webLogout);
 
-router.get('/web/operators');
-router.get('/web/operator/:id');
+router.get('/web/operators', operatorController.getOperators);
+router.get('/web/operator/:userId', operatorController.getOperatorById);
 router.post('/web/operator', authController.createOperator);
 router.patch('/web/operator', authController.editOperator);
 router.patch('/web/operator/activation/:userId', authController.activateOperator);
+
+router.get('/web/plans', planController.getPlans);
+router.patch('/web/plan/:planId', planController.updatePlan);
 
 router.get('/web/requests');
 router.get('/web/request/:id');

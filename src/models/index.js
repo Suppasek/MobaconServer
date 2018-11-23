@@ -35,6 +35,6 @@ db.Sequelize = Sequelize;
 db.Operators = require('./operators')(sequelize, Sequelize);
 db.Roles = require('./roles')(sequelize, Sequelize);
 
-db.Operators.belongsTo(db.Roles, { foreignKey: 'roleId' });
+db.Operators.belongsTo(db.Roles, { foreignKey: 'roleId', as: 'role' });
 
 module.exports = db;

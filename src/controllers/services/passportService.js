@@ -22,8 +22,8 @@ const op = Sequelize.Op;
 const getOperatorInfomation = (operator) => ({
   id: operator.id,
   role: {
-    id: operator.Role.id,
-    name: operator.Role.name,
+    id: operator.role.id,
+    name: operator.role.name,
   },
   fullName: operator.fullName,
   phoneNumber: operator.phoneNumber,
@@ -57,6 +57,7 @@ passport.use('web-login', new LocalStrategy({
       },
       include: [{
         model: Roles,
+        as: 'role',
       }],
     });
 
@@ -117,6 +118,7 @@ passport.use('web-jwt', new JwtStrategy({
   } else {
     try {
       const operator = await Operators.findOne({
+        attributes: ['id', 'fullName', 'phoneNumber', 'email', 'imagePath'],
         where: {
           id: {
             [op.eq]: jwtPayload.data.id,
@@ -124,19 +126,20 @@ passport.use('web-jwt', new JwtStrategy({
         },
         include: [{
           model: Roles,
+          as: 'role',
+          attributes: ['id', 'name'],
         }],
       });
-      const operatorInfomation = await getOperatorInfomation(operator);
 
       if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
-        done(null, operatorInfomation);
+        done(null, operator);
       } else {
         OperatorBlacklistTokens.create({
           token,
           createdBy: jwtPayload.data.id,
         });
-        done(null, operatorInfomation, {
-          token: await tokenHelper.getToken(operatorInfomation),
+        done(null, operator, {
+          token: await tokenHelper.getToken(operator),
         });
       }
     } catch (err) {

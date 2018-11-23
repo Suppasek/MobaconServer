@@ -1,5 +1,5 @@
 module.exports = {
-  baseUrl: '192.168.2.47',
+  baseUrl: 'localhost',
   httpPort: 8800,
   httpsPort: 8443,
   socketPort: 8888,

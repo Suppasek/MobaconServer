@@ -17,12 +17,10 @@ const multerService = require('./services/multerService');
 
 const op = Sequelize.Op;
 const {
-  Roles,
   Operators,
   Users,
   ConfirmationTokens,
 } = require('../models');
-
 
 // METHODS
 
@@ -31,7 +29,7 @@ const {
 const webLogin = async (req, res) => {
   passport.authenticate('web-login', async (error, operator, info) => {
     if (error) {
-      res.status(500).send('Internal server error');
+      res.status(500).json({ message: 'Internal server error' });
     } else if (!operator) {
       if (!info.status) {
         res.status(400).json({
@@ -53,7 +51,7 @@ const webLogin = async (req, res) => {
 const webLogout = async (req, res) => {
   passport.authenticate('web-logout', async (error, token, info) => {
     if (error) {
-      res.status(500).send('Internal server error');
+      res.status(500).json({ message: 'Internal server error' });
     } else if (token) {
       res.status(200).json(info);
     } else if (info.constructor.name === 'Error') {
@@ -108,71 +106,61 @@ const createOperator = async (req, res) => {
 };
 const editOperator = async (req, res) => {
   multerService.validateUploadImage(req, res, async () => {
-    passportService.checkJwtFailures(req, res, (operator, newToken) => {
-      validationHelper.bodyValidator(req, res, [], async () => {
-        try {
-          const foundOperator = await Operators.findOne({
-            where: {
-              id: {
-                [op.eq]: operator.id,
-              },
+    passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+      try {
+        const imagePathTemp = operator.imagePath;
+        const newPassword = req.body.password ? await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)) : undefined;
+        const updatedOperator = await operator.update({
+          fullName: req.body.fullName,
+          phoneNumber: req.body.phoneNumber,
+          password: newPassword,
+          imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
+        }, {
+          where: {
+            id: {
+              [op.eq]: operator.id,
             },
-            include: [{
-              model: Roles,
-            }],
-          });
+          },
+        });
 
-          const updatedOperator = await foundOperator.update({
-            fullName: req.body.fullName,
-            phoneNumber: req.body.phoneNumber,
-            imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
-          }, {
-            where: {
-              id: {
-                [op.eq]: operator.id,
-              },
+        res.status(200).json({
+          info: {
+            id: updatedOperator.id,
+            role: {
+              id: updatedOperator.role.id,
+              name: updatedOperator.role.name,
             },
-          });
+            fullName: updatedOperator.fullName,
+            phoneNumber: updatedOperator.phoneNumber,
+            email: updatedOperator.email,
+            imagePath: updatedOperator.imagePath,
+          },
+          token: newToken,
+          message: 'update operator information successfully',
+        });
 
-          res.status(200).json({
-            info: {
-              id: updatedOperator.id,
-              role: {
-                id: updatedOperator.Role.id,
-                name: updatedOperator.Role.name,
-              },
-              fullName: updatedOperator.fullName,
-              phoneNumber: updatedOperator.phoneNumber,
-              email: updatedOperator.email,
-              imagePath: updatedOperator.imagePath,
-            },
-            token: newToken,
-            message: 'update operator information successfully',
-          });
-
-          if (operator.imagePath) {
-            const imagePath = operator.imagePath.split('/');
-            const imageName = imagePath[imagePath.length - 1];
-            multerService.removeOperatorImageByName(imageName);
-          }
-        } catch (err) {
-          if (req.file) {
-            multerService.removeOperatorImageByPath(req.file.path);
-          }
-
-          if (err.errors) {
-            res.status(400).json({
-              token: newToken,
-              message: err.errors[0].message,
-            });
-          } else {
-            res.status(500).json({
-              token: newToken,
-              message: 'Internal server error',
-            });
-          }
+        if (imagePathTemp) {
+          const imagePath = imagePathTemp.split('/');
+          const imageName = imagePath[imagePath.length - 1];
+          multerService.removeOperatorImageByName(imageName);
         }
-      });
+      } catch (err) {
+        if (req.file) {
+          multerService.removeOperatorImageByPath(req.file.path);
+        }
+
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
     });
   });
 };
@@ -254,14 +242,14 @@ const mobileSignup = async (req, res) => {
         message: err.errors[0].message,
       });
     } else {
-      res.status(500).send('Internal server error');
+      res.status(500).json({ message: 'Internal server error' });
     }
   }
 };
 const mobileLogin = async (req, res) => {
   passport.authenticate('mobile-login', async (error, user, info) => {
     if (error) {
-      res.status(500).send('Internal server error');
+      res.status(500).json({ message: 'Internal server error' });
     } else if (!user) {
       res.status(info.status).json({
         message: info.message,
@@ -276,7 +264,7 @@ const mobileLogin = async (req, res) => {
 const mobileLogout = async (req, res) => {
   passport.authenticate('mobile-logout', async (error, token, info) => {
     if (error) {
-      res.status(500).send('Internal server error');
+      res.status(500).json({ message: 'Internal server error' });
     } else if (token) {
       res.status(200).json(info);
     } else if (info.constructor.name === 'Error') {
@@ -348,7 +336,7 @@ const verifyWithConfirmationToken = (req, res) => {
               },
             });
             if (!result) {
-              res.status(500).send('Internal server error');
+              res.status(500).json({ message: 'Internal server error' });
             } else {
               confirmationToken.update({
                 expired: moment().tz(config.timezone),
@@ -364,7 +352,7 @@ const verifyWithConfirmationToken = (req, res) => {
           });
         }
       } catch (err) {
-        res.status(500).send('Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
       }
     });
   });
@@ -391,7 +379,7 @@ const sendChangePasswordEmail = async (req, res) => {
       } else {
         const forgetPasswordToken = await tokenHelper.storeForgetPasswordToken(operator, 48);
         if (!forgetPasswordToken) {
-          res.status(500).send('Internal server error');
+          res.status(500).json({ message: 'Internal server error' });
         } else {
           emailHelper.sendChangePasswordMail(operator.email, forgetPasswordToken.token);
           res.status(200).json({
@@ -400,7 +388,7 @@ const sendChangePasswordEmail = async (req, res) => {
         }
       }
     } catch (err) {
-      res.status(500).send('Internal server error');
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 };
@@ -433,7 +421,7 @@ const changePasswordwithChangePasswordToken = async (req, res) => {
               },
             });
             if (!result) {
-              res.status(500).send('Internal server error');
+              res.status(500).json({ message: 'Internal server error' });
             } else {
               confirmationToken.update({
                 expired: moment().tz(config.timezone),
@@ -449,7 +437,7 @@ const changePasswordwithChangePasswordToken = async (req, res) => {
           });
         }
       } catch (err) {
-        res.status(500).send('Internal server error');
+        res.status(500).json({ message: 'Internal server error' });
       }
     });
   });
