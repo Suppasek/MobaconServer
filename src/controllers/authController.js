@@ -399,7 +399,7 @@ const changePasswordwithChangePasswordToken = async (req, res) => {
         const confirmationToken = await ConfirmationTokens.findOne({
           where: {
             token: {
-              [op.eq]: req.query.confirmation_token,
+              [op.eq]: req.query.change_password_token,
             },
           },
         });

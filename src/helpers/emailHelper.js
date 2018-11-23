@@ -24,8 +24,9 @@ const sendVerificationMail = (email, forgetPasswordToken) => {
   readHTMLFile(path.join(__dirname, './templates/verifyAccount.html'), (err, html) => {
     const template = handlebars.compile(html);
     const replacements = {
-      host: apiConfig.baseUrl,
-      port: apiConfig.httpPort,
+      protocol: apiConfig.web.protocol,
+      host: apiConfig.web.host,
+      port: apiConfig.web.port,
       token: forgetPasswordToken,
     };
     const htmlToSend = template(replacements);
@@ -43,8 +44,9 @@ const sendChangePasswordMail = (email, forgetPasswordToken) => {
   readHTMLFile(path.join(__dirname, './templates/changePassword.html'), (err, html) => {
     const template = handlebars.compile(html);
     const replacements = {
-      host: apiConfig.baseUrl,
-      port: apiConfig.httpPort,
+      protocol: apiConfig.web.protocol,
+      host: apiConfig.web.host,
+      port: apiConfig.web.port,
       token: forgetPasswordToken,
     };
     const htmlToSend = template(replacements);

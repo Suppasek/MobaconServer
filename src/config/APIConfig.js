@@ -8,4 +8,9 @@ module.exports = {
   fileUpload: {
     mimetype: ['image/png', 'image/jpeg'],
   },
+  web: {
+    protocol: 'http',
+    host: 'mobacon-web.pieros.site',
+    port: 80,
+  },
 };
