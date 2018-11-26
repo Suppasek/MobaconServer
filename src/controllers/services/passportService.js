@@ -139,11 +139,20 @@ passport.use('web-jwt', new JwtStrategy({
       if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
         done(null, operator);
       } else {
+        const isOutOfTime = moment.duration(moment().tz(config.timezone).diff(moment(jwtPayload.exp).tz(config.timezone))).asHours() > 120;
+
+        if (isOutOfTime) {
+          done(null, false, { message: 'token has expired' });
+          if (req.file) {
+            fs.unlink(req.file.path, () => {});
+          }
+        } else {
+          done(null, operator, {
+            token: await tokenHelper.getOperatorToken(operator),
+          });
+        }
         foundToken.update({
           banned: true,
-        });
-        done(null, operator, {
-          token: await tokenHelper.getOperatorToken(operator),
         });
       }
     }
