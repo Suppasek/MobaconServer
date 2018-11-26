@@ -110,11 +110,17 @@ passport.use('web-jwt', new JwtStrategy({
         status: 401,
         message: 'token is invalid',
       });
+      if (req.file) {
+        fs.unlink(req.file.path, () => {});
+      }
     } else if (foundToken.banned) {
       done(null, false, {
         status: 401,
         message: 'token has expired',
       });
+      if (req.file) {
+        fs.unlink(req.file.path, () => {});
+      }
     } else {
       const operator = await Operators.findOne({
         attributes: ['id', 'fullName', 'phoneNumber', 'email', 'imagePath'],
@@ -142,6 +148,9 @@ passport.use('web-jwt', new JwtStrategy({
       }
     }
   } catch (err) {
+    if (req.file) {
+      fs.unlink(req.file.path, () => {});
+    }
     done(err, false);
   }
 }));
