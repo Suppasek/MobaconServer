@@ -13,8 +13,8 @@ const {
   Roles,
   Operators,
   Users,
-  OperatorBlacklistTokens,
-  UserBlacklistTokens,
+  OperatorTokens,
+  UserTokens,
 } = require('../../models');
 
 const op = Sequelize.Op;
@@ -30,16 +30,6 @@ const getOperatorInfomation = (operator) => ({
   email: operator.email,
   imagePath: operator.imagePath,
 });
-const isBlacklistToken = async (token) => {
-  const blacklistToken = await OperatorBlacklistTokens.findOne({
-    where: {
-      token: {
-        [op.eq]: token,
-      },
-    },
-  });
-  return !!blacklistToken;
-};
 
 // STRATEGY FOR WEB LOGIN
 passport.use('web-login', new LocalStrategy({
@@ -106,17 +96,26 @@ passport.use('web-jwt', new JwtStrategy({
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
 
-  if (await isBlacklistToken(token)) {
-    done(null, false, {
-      status: 401,
-      message: 'Token has expired',
+  try {
+    const foundToken = await OperatorTokens.findOne({
+      where: {
+        token: {
+          [op.eq]: token,
+        },
+      },
     });
 
-    if (req.file) {
-      fs.unlink(req.file.path, () => {});
-    }
-  } else {
-    try {
+    if (!foundToken) {
+      done(null, false, {
+        status: 401,
+        message: 'token is invalid',
+      });
+    } else if (foundToken.banned) {
+      done(null, false, {
+        status: 401,
+        message: 'token has expired',
+      });
+    } else {
       const operator = await Operators.findOne({
         attributes: ['id', 'fullName', 'phoneNumber', 'email', 'imagePath'],
         where: {
@@ -134,17 +133,16 @@ passport.use('web-jwt', new JwtStrategy({
       if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
         done(null, operator);
       } else {
-        OperatorBlacklistTokens.create({
-          token,
-          createdBy: jwtPayload.data.id,
+        foundToken.update({
+          banned: true,
         });
         done(null, operator, {
-          token: await tokenHelper.getToken(operator),
+          token: await tokenHelper.getOperatorToken(operator),
         });
       }
-    } catch (err) {
-      done(err, false);
     }
+  } catch (err) {
+    done(err, false);
   }
 }));
 
@@ -159,7 +157,7 @@ passport.use('web-logout', new JwtStrategy({
   const token = req.headers.authorization.split(' ')[1];
   if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
     try {
-      const foundToken = await OperatorBlacklistTokens.findOne({
+      const foundToken = await OperatorTokens.findOne({
         where: {
           token: {
             [op.eq]: token,
@@ -167,13 +165,15 @@ passport.use('web-logout', new JwtStrategy({
         },
       });
 
-      if (foundToken) {
+      if (!foundToken) {
+        done(null, false, { message: 'Token is invalid' });
+      } else if (foundToken.banned) {
         done(null, false, { message: 'Token has expired' });
       } else {
-        OperatorBlacklistTokens.create({
-          token,
-          createdBy: jwtPayload.data.id,
-        }).then(() => done(null, foundToken, { message: 'Logout successfully' }));
+        await foundToken.update({
+          banned: true,
+        });
+        done(null, foundToken, { message: 'Logout successfully' });
       }
     } catch (error) {
       done(error, false, { message: 'Internal server error' });
@@ -246,7 +246,7 @@ passport.use('mobile-jwt', new JwtStrategy({
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
   if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
-    const foundToken = await UserBlacklistTokens.findOne({
+    const foundToken = await UserTokens.findOne({
       where: {
         token: {
           [op.eq]: token,
@@ -279,7 +279,7 @@ passport.use('mobile-logout', new JwtStrategy({
   const token = req.headers.authorization.split(' ')[1];
   if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
     try {
-      const foundToken = await UserBlacklistTokens.findOne({
+      const foundToken = await UserTokens.findOne({
         where: {
           token: {
             [op.eq]: token,
@@ -293,7 +293,7 @@ passport.use('mobile-logout', new JwtStrategy({
       if (!foundToken) {
         done(null, false, { message: 'Token has expired' });
       } else if (foundToken.expired > moment().tz(config.timezone)) {
-        await UserBlacklistTokens.update({
+        await UserTokens.update({
           expired: moment().tz(config.timezone),
         }, {
           where: {

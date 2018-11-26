@@ -43,7 +43,7 @@ const webLogin = async (req, res) => {
     } else {
       res.status(200).json({
         info: operator,
-        token: await tokenHelper.getToken(operator),
+        token: await tokenHelper.getOperatorToken(operator),
       });
     }
   })(req, res);
@@ -256,7 +256,7 @@ const mobileLogin = async (req, res) => {
       });
     } else {
       res.status(200).json({
-        token: await tokenHelper.getToken(user),
+        token: await tokenHelper.getUserToken(user),
       });
     }
   })(req, res);
