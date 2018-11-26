@@ -6,16 +6,38 @@ const config = require('../config/APIConfig');
 const emailHelper = require('../helpers/emailHelper');
 
 const {
+  OperatorTokens,
+  UserTokens,
   ConfirmationTokens,
   ForgetPasswordTokens,
 } = require('../models');
 
-const getToken = async (user, time = 12) => {
+const getOperatorToken = async (user, time = 12) => {
   const expired = Math.floor(moment().tz(config.timezone).add(time, 'hours'));
   const token = await jwt.sign({
     data: user,
     exp: expired,
   }, config.secret);
+
+  OperatorTokens.create({
+    token,
+    createdBy: user.id,
+  });
+
+  return token;
+};
+const getUserToken = async (user, time = 12) => {
+  const expired = Math.floor(moment().tz(config.timezone).add(time, 'hours'));
+  const token = await jwt.sign({
+    data: user,
+    exp: expired,
+  }, config.secret);
+
+  UserTokens.create({
+    token,
+    createdBy: user.id,
+  });
+
   return token;
 };
 const storeConfirmationToken = async (email, userId, time = 12) => {
@@ -52,7 +74,8 @@ const storeForgetPasswordToken = async (operator, expiredIn = 12) => {
 };
 
 module.exports = {
-  getToken,
+  getOperatorToken,
+  getUserToken,
   storeConfirmationToken,
   storeConfirmationTokenByOperator,
   storeForgetPasswordToken,

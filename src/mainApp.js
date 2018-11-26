@@ -1,10 +1,12 @@
 const fs = require('fs');
-const http = require('http');
+const path = require('path');
 const cors = require('cors');
+const http = require('http');
 const https = require('https');
 const express = require('express');
 // const socketio = require('socket.io');
 const bodyParser = require('body-parser');
+const formData = require('express-form-data');
 
 const config = require('./config/APIConfig');
 const router = require('./routes/router').Router;
@@ -12,11 +14,17 @@ const router = require('./routes/router').Router;
 require('./config/APIConstant');
 require('./controllers/services/passportService');
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/mobacon/api/', router);
+const app = express()
+  .use(cors())
+  .use(bodyParser.json())
+  .use(bodyParser.urlencoded({ extended: true }))
+  // .use(formData.parse({
+  //   uploadDir: path.join(__dirname, '../assets/images/operators/'),
+  // }))
+  // .use(formData.format())
+  // .use(formData.stream())
+  // .use(formData.union())
+  .use('/mobacon/api/', router);
 
 // CREATE SERVER WITH HTTP
 const httpServer = http.createServer(app).listen(config.httpPort, () => {

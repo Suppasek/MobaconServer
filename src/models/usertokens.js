@@ -1,11 +1,19 @@
 module.exports = (sequelize, DataTypes) => {
-  const OperatorBlacklistTokens = sequelize.define('OperatorBlacklistTokens', {
+  const UserTokens = sequelize.define('UserTokens', {
     token: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
       type: DataTypes.STRING(500),
+    },
+    banned: {
+      allowNull: false,
+      defaultValue: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.BOOLEAN,
     },
     createdBy: {
       allowNull: false,
@@ -16,5 +24,5 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {});
 
-  return OperatorBlacklistTokens;
+  return UserTokens;
 };

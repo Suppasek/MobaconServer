@@ -1,5 +1,5 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('UserBlacklistTokens', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('OperatorTokens', {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -11,9 +11,14 @@ module.exports = {
       allowNull: false,
       type: Sequelize.STRING(500),
     },
+    banned: {
+      allowNull: false,
+      defaultValue: false,
+      type: Sequelize.BOOLEAN,
+    },
     createdBy: {
       allowNull: false,
-      references: { model: 'Users', key: 'id' },
+      references: { model: 'Operators', key: 'id' },
       type: Sequelize.INTEGER,
     },
     createdAt: {
@@ -25,5 +30,5 @@ module.exports = {
       type: Sequelize.DATE,
     },
   }),
-  down: (queryInterface) => queryInterface.dropTable('UserBlacklistTokens'),
+  down: (queryInterface) => queryInterface.dropTable('OperatorTokens'),
 };
