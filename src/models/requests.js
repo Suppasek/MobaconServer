@@ -1,53 +1,56 @@
 module.exports = (sequelize, DataTypes) => {
-  const Users = sequelize.define('Users', {
-    roleId: {
+  const Requests = sequelize.define('Requests', {
+    userId: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
       type: DataTypes.INTEGER,
     },
-    planId: {
+    operatorId: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
       type: DataTypes.INTEGER,
     },
-    fullName: {
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.STRING(50),
-    },
-    phoneNumber: {
+    carrierId: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
-      type: DataTypes.STRING(20),
+      type: DataTypes.INTEGER,
     },
-    password: {
+    billRef: {
       allowNull: false,
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.STRING(500),
-    },
-    imagePath: {
       validate: {
         notEmpty: true,
       },
       type: DataTypes.STRING(255),
     },
-    verified: {
+    status: {
+      allowNull: false,
+      defaultValue: 'Pending',
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.ENUM('Pending', 'Accepted', 'Reviewed'),
+    },
+    memoId: {
       allowNull: false,
       validate: {
         notEmpty: true,
       },
-      type: DataTypes.BOOLEAN,
+      type: DataTypes.INTEGER,
+    },
+    offerId: {
+      allowNull: false,
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.INTEGER,
     },
   }, {});
 
-  return Users;
+  return Requests;
 };

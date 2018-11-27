@@ -29,6 +29,9 @@ module.exports = {
       allowNull: false,
       type: Sequelize.STRING(500),
     },
+    imagePath: {
+      type: Sequelize.STRING(255),
+    },
     verified: {
       allowNull: false,
       defaultValue: false,
