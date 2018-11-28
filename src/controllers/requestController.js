@@ -12,6 +12,7 @@ const {
 } = require('../models');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
+const constant = require('../config/APIConstant');
 
 const op = Sequelize.Op;
 
@@ -24,6 +25,65 @@ const getRequests = (req, res) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const requests = await Requests.findAll({
+          where: {
+
+          },
+          attributes: ['id', 'billRef', 'status', 'createdAt'],
+          include: [{
+            model: Carriers,
+            as: 'carrier',
+            attributes: ['id', 'name'],
+          }, {
+            model: Users,
+            as: 'user',
+            attributes: ['id', 'fullName', 'phoneNumber', 'imagePath', 'verified', 'createdAt'],
+            include: [{
+              model: Roles,
+              as: 'role',
+              attributes: ['id', 'name'],
+            }, {
+              model: Plans,
+              as: 'plan',
+              attributes: ['id', 'name'],
+            }],
+          }, {
+            model: Operators,
+            as: 'operator',
+            attributes: ['id', 'fullName', 'phoneNumber', 'imagePath', 'verified', 'activated', 'createdAt'],
+            include: [{
+              model: Roles,
+              as: 'role',
+              attributes: ['id', 'name'],
+            }],
+          }],
+        });
+        res.status(200).json({
+          token: newToken,
+          recordsTotal: requests.length,
+          data: requests,
+        });
+      } catch (err) {
+        res.status(500).json({
+          token: newToken,
+          message: 'Internal server error',
+        });
+      }
+    });
+  });
+};
+const getAcceptedRequests = (req, res) => {
+  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(req, res, operator, newToken, async () => {
+      try {
+        const requests = await Requests.findAll({
+          where: {
+            operatorId: {
+              [op.eq]: operator.id,
+            },
+            status: {
+              [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
+            },
+          },
           attributes: ['id', 'billRef', 'status', 'createdAt'],
           include: [{
             model: Carriers,
@@ -327,6 +387,7 @@ const putRequesReviewById = (req, res) => {
 
 module.exports = {
   getRequests,
+  getAcceptedRequests,
   getRequestById,
   requestAcceptance,
   putRequestMemoById,

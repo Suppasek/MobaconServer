@@ -76,7 +76,7 @@ const createOperator = async (req, res) => {
               verified: false,
               activated: true,
             });
-            tokenHelper.storeConfirmationToken(newOperator.email, newOperator.id, 48);
+            tokenHelper.storeConfirmationToken(newOperator.email, newOperator.id, operator.id, 48);
 
             res.status(201).json({
               token: newToken,
