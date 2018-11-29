@@ -29,7 +29,7 @@ const httpsServer = https.createServer({
   console.log(`Start https server at\t ${config.baseUrl}:${config.httpsPort}`);
 });
 
-const chatApp = chatSocket(httpServer);
+chatSocket(httpServer);
 
 module.exports = {
   HttpServer: httpServer,

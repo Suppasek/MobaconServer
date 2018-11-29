@@ -21,7 +21,7 @@ const op = Sequelize.Op;
 
 // CONTROLLER METHODS
 const getRequests = (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const requests = await Requests.findAll({
@@ -72,7 +72,7 @@ const getRequests = (req, res) => {
   });
 };
 const getAcceptedRequests = (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const requests = await Requests.findAll({
@@ -128,7 +128,7 @@ const getAcceptedRequests = (req, res) => {
   });
 };
 const getRequestById = (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const request = await Requests.findAll({
@@ -183,7 +183,7 @@ const getRequestById = (req, res) => {
   });
 };
 const requestAcceptance = (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const request = await Requests.findOne({
@@ -232,7 +232,7 @@ const requestAcceptance = (req, res) => {
   });
 };
 const putRequestMemoById = (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       validationHelper.bodyValidator(req, res, ['message'], async () => {
         try {
@@ -305,7 +305,7 @@ const putRequestMemoById = (req, res) => {
   });
 };
 const putRequesReviewById = (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       validationHelper.bodyValidator(req, res, ['minutes', 'sms', 'internet', 'cloudStorage'], async () => {
         try {

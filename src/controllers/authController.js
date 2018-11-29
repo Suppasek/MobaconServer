@@ -63,7 +63,7 @@ const webLogout = async (req, res) => {
 };
 const createOperator = async (req, res) => {
   multerService.validateUploadImage(req, res, async () => {
-    passportService.checkJwtFailures(req, res, (operator, newToken) => {
+    passportService.webJwtAuthorize(req, res, (operator, newToken) => {
       validationHelper.bodyValidator(req, res, ['fullName', 'email', 'roleId'], async () => {
         validationHelper.operatorCreationValidator(req, res, operator, newToken, async () => {
           try {
@@ -106,7 +106,7 @@ const createOperator = async (req, res) => {
 };
 const editOperator = async (req, res) => {
   multerService.validateUploadImage(req, res, async () => {
-    passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+    passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
       try {
         const imagePathTemp = operator.imagePath;
         const newPassword = req.body.password ? await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)) : undefined;
@@ -165,7 +165,7 @@ const editOperator = async (req, res) => {
   });
 };
 const activateOperator = async (req, res) => {
-  passportService.checkJwtFailures(req, res, (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, (operator, newToken) => {
     validationHelper.administratorValidator(req, res, operator, newToken, async () => {
       try {
         const foundOperator = await Operators.findOne({
@@ -251,11 +251,18 @@ const mobileLogin = async (req, res) => {
     if (error) {
       res.status(500).json({ message: 'Internal server error' });
     } else if (!user) {
-      res.status(info.status).json({
-        message: info.message,
-      });
+      if (!info.status) {
+        res.status(400).json({
+          message: info.message,
+        });
+      } else {
+        res.status(info.status).json({
+          message: info.message,
+        });
+      }
     } else {
       res.status(200).json({
+        info: user,
         token: await tokenHelper.getUserToken(user),
       });
     }
@@ -280,7 +287,7 @@ const getVerifyWithConfirmationTokenPage = async (req, res) => {
   res.sendFile(path.join(__dirname, './templates/confirmationPage.html'));
 };
 const sendVerificationEmail = async (req, res) => {
-  passportService.checkJwtFailures(req, res, (operator) => {
+  passportService.webJwtAuthorize(req, res, (operator) => {
     validationHelper.bodyValidator(req, res, ['userId'], async (body) => {
       const foundOperator = await Operators.findOne({
         where: {

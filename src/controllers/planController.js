@@ -11,7 +11,7 @@ const op = Sequelize.Op;
 
 // CONTROLLER METHODS
 const getPlans = async (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const plans = await Plans.findAll({
@@ -32,7 +32,7 @@ const getPlans = async (req, res) => {
   });
 };
 const updatePlan = async (req, res) => {
-  passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       validationHelper.bodyValidator(req, res, [['chatEnabled', 'boolean'], ['historyEnabled', 'boolean']], async () => {
         try {
