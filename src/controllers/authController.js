@@ -8,7 +8,7 @@ const Sequelize = require('sequelize');
 const moment = require('moment-timezone');
 
 const config = require('../config/APIConfig');
-// const constant = require('../config/APIConstant');
+const constant = require('../config/APIConstant');
 const tokenHelper = require('../helpers/tokenHelper');
 const emailHelper = require('../helpers/emailHelper');
 const passportService = require('./services/passportService');
@@ -215,36 +215,29 @@ const activateOperator = async (req, res) => {
 
 // MOBILE AUTHENTICATION
 const mobileSignup = async (req, res) => {
-  try {
-    const data = {
-      roleId: 2,
-      phoneNumber: req.body.phoneNumber,
-      carrier: req.body.carrier,
-      password: req.body.password,
-    };
-    const createdUser = await Users.create(data);
-    bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then((hashed) => {
-      createdUser.update({
-        password: hashed,
+  validationHelper.bodyValidator(req, res, ['phoneNumber', 'password'], async () => {
+    try {
+      const password = await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10));
+      await Users.create({
+        roleId: constant.ROLE.USER,
+        planId: constant.PLAN.BASIC,
+        phoneNumber: req.body.phoneNumber,
+        password,
+        verified: true,
       });
-    });
-    const resData = {
-      phoneNumber: createdUser.phoneNumber,
-      carrier: createdUser.carrier,
-    };
-    res.status(201).json({
-      message: 'created',
-      data: resData,
-    });
-  } catch (err) {
-    if (err.errors) {
-      res.status(400).json({
-        message: err.errors[0].message,
+      res.status(201).json({
+        message: 'sign up successfully',
       });
-    } else {
-      res.status(500).json({ message: 'Internal server error' });
+    } catch (err) {
+      if (err.errors) {
+        res.status(400).json({
+          message: err.errors[0].message,
+        });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
-  }
+  });
 };
 const mobileLogin = async (req, res) => {
   passport.authenticate('mobile-login', async (error, user, info) => {

@@ -39,6 +39,11 @@ class JwtError extends Error {
 // METHODS
 const clear = async () => {
   await ChatRoomSchema.deleteMany({});
+  await ChatRoomSchema.create({
+    userId: 1,
+    operatorId: 1,
+    requestId: 12,
+  });
   await ChatMessageSchema.deleteMany({});
 };
 const clearSockets = async () => {
@@ -188,59 +193,89 @@ const payloadValidator = (payload, keys, next) => {
     next();
   }
 };
-const checkRoleAndStoreMessage = async (socketId, message, targetId, next) => {
-  const socketOwner = await SocketSchema.findOne({
-    socketId,
+const sendChat = (io, targetSocketIds, senderId, message) => {
+  forEach(targetSocketIds, (targetSocketId) => {
+    io.sockets.connected[targetSocketId.socketId].emit('chat', {
+      ok: true,
+      senderId,
+      message,
+    });
   });
+};
+const checkAndChat = async (io, socketId, payload, next) => {
+  try {
+    const socketOwner = await SocketSchema.findOne({
+      socketId,
+    });
 
-  if (socketOwner.roleId === constant.ROLE.USER) {
-    const targetSocketIds = await SocketSchema.find({
-      userId: targetId,
-      $or: [{
-        roleId: constant.ROLE.ADMINISTRATOR,
-      }, {
-        roleId: constant.ROLE.OPERATOR,
-      }],
-    }).select('socketId');
-
-    const chatRoom = await ChatRoomSchema.findOne({
-      userId: targetId,
-      operatorId: socketOwner.userId,
-    }).select('messageId');
-
-    if (chatRoom) {
-      await storeChat(chatRoom.messageId, targetId, socketOwner.userId, message);
-      next(targetSocketIds, socketOwner.userId);
-    }
-  } else {
-    const targetSocketIds = await SocketSchema.find({
-      userId: targetId,
-      roleId: constant.ROLE.USER,
-    }).select('socketId');
-
-    const chatRoom = await ChatRoomSchema.findOne({
-      userId: targetId,
-      operatorId: socketOwner.userId,
-    }).select('messageId');
-
-    if (!chatRoom) {
-      const newChatMessages = await ChatMessageSchema.create({
-        data: [{
-          message,
-          userId: targetId,
-          operatorId: socketOwner.userId,
+    if (socketOwner.roleId === constant.ROLE.USER) {
+      const user = await Users.findOne({
+        where: {
+          id: {
+            [op.eq]: socketOwner.userId,
+          },
+        },
+      });
+      const targetSocketIds = await SocketSchema.find({
+        userId: payload.targetId,
+        $or: [{
+          roleId: constant.ROLE.ADMINISTRATOR,
+        }, {
+          roleId: constant.ROLE.OPERATOR,
         }],
+      }).select('socketId');
+
+      const chatRoom = await ChatRoomSchema.findOne({
+        userId: socketOwner.userId,
+        operatorId: payload.targetId,
       });
 
-      await ChatRoomSchema.create({
-        userId: targetId,
-        operatorId: socketOwner.userId,
-        messageId: newChatMessages.id,
-      });
+      if (!user) throw new Error();
+      else if (user.planId === constant.PLAN.BASIC) throw new Error();
+      else if (!chatRoom) throw new Error();
+      else if (!chatRoom.messageId) throw new Error();
+
+      await storeChat(chatRoom.messageId, socketOwner.userId, payload.targetId, payload.message);
+      await sendChat(io, targetSocketIds, socketOwner.userId, payload.message);
+      next({ ok: true });
     } else {
-      await storeChat(chatRoom.messageId, targetId, socketOwner.userId, message);
+      const operator = await Operators.findOne({
+        where: {
+          id: {
+            [op.eq]: socketOwner.userId,
+          },
+        },
+      });
+      const targetSocketIds = await SocketSchema.find({
+        userId: payload.targetId,
+        roleId: constant.ROLE.USER,
+      }).select('socketId');
+
+      const chatRoom = await ChatRoomSchema.findOne({
+        userId: payload.targetId,
+        operatorId: socketOwner.userId,
+      });
+
+      if (!operator) throw new Error();
+      else if (!chatRoom) throw new Error();
+      else if (!chatRoom.messageId) {
+        const newChatMessages = await ChatMessageSchema.create({});
+        await ChatRoomSchema.findByIdAndUpdate(chatRoom.id, {
+          messageId: newChatMessages.id,
+        });
+        await storeChat(newChatMessages.id, payload.targetId, socketOwner.userId, payload.message);
+      } else {
+        await storeChat(chatRoom.messageId, payload.targetId, socketOwner.userId, payload.message);
+      }
+
+      sendChat(io, targetSocketIds, socketOwner.userId, payload.message);
+      next({ ok: true });
     }
-    next(targetSocketIds, socketOwner.userId);
+  } catch (err) {
+    next({
+      ok: false,
+      message: 'forbidden for chat',
+    });
   }
 };
 
@@ -253,19 +288,7 @@ module.exports = (server) => {
     socket.emit('chat', { message: socket.id });
     authorization(socket, () => {
       socket
-        .on('chat', (payload, next) => {
-          payloadValidator(payload, ['message', 'targetId'], () => {
-            checkRoleAndStoreMessage(socket.id, payload.message, payload.targetId, (targetSocketIds, sendBy) => {
-              forEach(targetSocketIds, (object) => {
-                io.sockets.connected[object.socketId].emit('chat', {
-                  message: payload.message,
-                  sendBy,
-                });
-              });
-            });
-          });
-          next({ ok: true, payload });
-        })
+        .on('chat', (payload, next) => payloadValidator(payload, ['message', 'targetId'], () => checkAndChat(io, socket.id, payload, next)))
         .on('disconnect', () => removeSocketId(socket.id));
     });
   });

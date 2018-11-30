@@ -9,6 +9,10 @@ const ChatRoomSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
+  requestId: {
+    type: Number,
+    required: true,
+  },
   messageId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'ChatMessages',
