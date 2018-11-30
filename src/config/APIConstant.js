@@ -1,7 +1,16 @@
 module.exports = {
-  ADMINISTRATOR: 1,
-  OPERATOR: 2,
-  USER: 3,
-  BASIC_PLAN: 1,
-  PREMIUM_PLAN: 2,
+  ROLE: {
+    ADMINISTRATOR: 1,
+    OPERATOR: 2,
+    USER: 3,
+  },
+  PLAN: {
+    BASIC: 1,
+    PREMIUM: 2,
+  },
+  REQUEST_STATUS: {
+    PENDING: 'Pending',
+    ACCEPTED: 'Accepted',
+    REVIEWED: 'Reviewed',
+  },
 };

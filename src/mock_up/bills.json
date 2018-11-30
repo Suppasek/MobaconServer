@@ -1,0 +1,195 @@
+{
+    "bills": [{
+        "id": "5bfbe142006b443ec25bb405000002",
+        "month": 1,
+        "amount": 161,
+        "used": {
+            "minutes": 92,
+            "sms": 36,
+            "internet": 49
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-01-05 10:00:00",
+        "paidAt": "2018-02-20 20:00:00"
+    }, {
+        "id": "5bfbe142006c493ec25bb405000003",
+        "month": 2,
+        "amount": 11,
+        "used": {
+            "minutes": 170,
+            "sms": 35,
+            "internet": 42
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-02-05 10:00:00",
+        "paidAt": "2018-03-20 20:00:00"
+    }, {
+        "id": "5bfbe142006c9d3ec25bb405000004",
+        "month": 3,
+        "amount": 207,
+        "used": {
+            "minutes": 123,
+            "sms": 36,
+            "internet": 4
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-03-05 10:00:00",
+        "paidAt": "2018-04-20 20:00:00"
+    }, {
+        "id": "5bfbe142006cd33ec25bb405000005",
+        "month": 4,
+        "amount": 161,
+        "used": {
+            "minutes": 89,
+            "sms": 24,
+            "internet": 2
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-04-05 10:00:00",
+        "paidAt": "2018-05-20 20:00:00"
+    }, {
+        "id": "5bfbe142006d143ec25bb405000006",
+        "month": 5,
+        "amount": 420,
+        "used": {
+            "minutes": 56,
+            "sms": 29,
+            "internet": 6
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-05-05 10:00:00",
+        "paidAt": "2018-06-20 20:00:00"
+    }, {
+        "id": "5bfbe142006d463ec25bb405000007",
+        "month": 6,
+        "amount": 104,
+        "used": {
+            "minutes": 194,
+            "sms": 4,
+            "internet": 39
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-06-05 10:00:00",
+        "paidAt": "2018-07-20 20:00:00"
+    }, {
+        "id": "5bfbe142006d813ec25bb405000008",
+        "month": 7,
+        "amount": 83,
+        "used": {
+            "minutes": 146,
+            "sms": 24,
+            "internet": 22
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-07-05 10:00:00",
+        "paidAt": "2018-08-20 20:00:00"
+    }, {
+        "id": "5bfbe142006da93ec25bb405000009",
+        "month": 8,
+        "amount": 244,
+        "used": {
+            "minutes": 200,
+            "sms": 46,
+            "internet": 9
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-08-05 10:00:00",
+        "paidAt": "2018-09-20 20:00:00"
+    }, {
+        "id": "5bfbe142006dcb3ec25bb40500000a",
+        "month": 9,
+        "amount": 117,
+        "used": {
+            "minutes": 169,
+            "sms": 23,
+            "internet": 28
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-09-05 10:00:00",
+        "paidAt": "2018-10-20 20:00:00"
+    }, {
+        "id": "5bfbe142006df63ec25bb40500000b",
+        "month": 10,
+        "amount": 311,
+        "used": {
+            "minutes": 35,
+            "sms": 6,
+            "internet": 2
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-10-05 10:00:00",
+        "paidAt": "2018-11-20 20:00:00"
+    }, {
+        "id": "5bfbe142006e1a3ec25bb40500000c",
+        "month": 11,
+        "amount": 256,
+        "used": {
+            "minutes": 129,
+            "sms": 36,
+            "internet": 45
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-11-05 10:00:00",
+        "paidAt": "2018-12-20 20:00:00"
+    }, {
+        "id": "5bfbe142006e3a3ec25bb40500000d",
+        "month": 12,
+        "amount": 275,
+        "used": {
+            "minutes": 69,
+            "sms": 50,
+            "internet": 31
+        },
+        "limit": {
+            "minutes": 300,
+            "sms": 70,
+            "internet": 60
+        },
+        "emissionAt": "2018-12-05 10:00:00",
+        "paidAt": "2018-01-20 20:00:00"
+    }]
+}

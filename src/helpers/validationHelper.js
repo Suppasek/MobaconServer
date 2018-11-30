@@ -50,13 +50,13 @@ const queryValidator = async (req, res, keys, next) => {
   }
 };
 const operatorCreationValidator = (req, res, operator, newToken, next) => {
-  if (operator.role.id === constant.ADMINISTRATOR) {
-    if (req.body.roleId === `${constant.ADMINISTRATOR}` || req.body.roleId === `${constant.OPERATOR}`) {
+  if (operator.role.id === constant.ROLE.ADMINISTRATOR) {
+    if (req.body.roleId === `${constant.ROLE.ADMINISTRATOR}` || req.body.roleId === `${constant.ROLE.OPERATOR}`) {
       next();
     } else {
       res.status(400).json({
         token: newToken,
-        message: `roleId must be ${constant.ADMINISTRATOR} or ${constant.OPERATOR}`,
+        message: `roleId must be ${constant.ROLE.ADMINISTRATOR} or ${constant.ROLE.OPERATOR}`,
       });
     }
   } else {
@@ -67,7 +67,7 @@ const operatorCreationValidator = (req, res, operator, newToken, next) => {
   }
 };
 const administratorValidator = (req, res, operator, newToken, next) => {
-  if (operator.role.id === constant.ADMINISTRATOR) {
+  if (operator.role.id === constant.ROLE.ADMINISTRATOR) {
     next();
   } else {
     res.status(403).json({
@@ -77,7 +77,7 @@ const administratorValidator = (req, res, operator, newToken, next) => {
   }
 };
 const operatorValidator = (req, res, operator, newToken, next) => {
-  if (operator.role.id === constant.ADMINISTRATOR || operator.role.id === constant.OPERATOR) {
+  if (operator.role.id === constant.ROLE.ADMINISTRATOR || operator.role.id === constant.ROLE.OPERATOR) {
     next();
   } else {
     res.status(403).json({

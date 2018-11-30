@@ -32,9 +32,22 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-db.Operators = require('./operators')(sequelize, Sequelize);
 db.Roles = require('./roles')(sequelize, Sequelize);
+db.Operators = require('./operators')(sequelize, Sequelize);
+db.Users = require('./users')(sequelize, Sequelize);
+db.Carriers = require('./carriers')(sequelize, Sequelize);
+db.Memos = require('./memos')(sequelize, Sequelize);
+db.Offers = require('./offers')(sequelize, Sequelize);
+db.Requests = require('./requests')(sequelize, Sequelize);
+db.Plans = require('./plans')(sequelize, Sequelize);
 
 db.Operators.belongsTo(db.Roles, { foreignKey: 'roleId', as: 'role' });
+db.Users.belongsTo(db.Roles, { foreignKey: 'roleId', as: 'role' });
+db.Users.belongsTo(db.Plans, { foreignKey: 'planId', as: 'plan' });
+db.Requests.belongsTo(db.Operators, { foreignKey: 'operatorId', as: 'operator' });
+db.Requests.belongsTo(db.Users, { foreignKey: 'userId', as: 'user' });
+db.Requests.belongsTo(db.Carriers, { foreignKey: 'carrierId', as: 'carrier' });
+db.Requests.belongsTo(db.Memos, { foreignKey: 'memoId', as: 'memo' });
+db.Requests.belongsTo(db.Offers, { foreignKey: 'offerId', as: 'offer' });
 
 module.exports = db;

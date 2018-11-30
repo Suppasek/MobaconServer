@@ -1,17 +1,13 @@
 const fs = require('fs');
-// const path = require('path');
 const cors = require('cors');
 const http = require('http');
 const https = require('https');
 const express = require('express');
-// const socketio = require('socket.io');
 const bodyParser = require('body-parser');
 
+const chatSocket = require('./chatApp');
 const config = require('./config/APIConfig');
 const router = require('./routes/router').Router;
-
-require('./config/APIConstant');
-require('./controllers/services/passportService');
 
 const app = express()
   .use(cors())
@@ -33,21 +29,9 @@ const httpsServer = https.createServer({
   console.log(`Start https server at\t ${config.baseUrl}:${config.httpsPort}`);
 });
 
+chatSocket(httpServer);
+
 module.exports = {
   HttpServer: httpServer,
   HttpsServer: httpsServer,
 };
-
-// const io = socketio(server);
-
-// io.on('connection', (socket) => {
-//   // io.sockets.connected[socket.id].emit('chat message', socket.id);
-//   socket.emit('chat message', socket.id);
-//   console.log('[+] User connected');
-//   socket
-//     .on('disconnect', () => console.log('[-] User disconnected'))
-//     .on('chat message', (msg) => {
-//       console.log(`message: ${msg}`);
-//       io.emit('chat message', msg);
-//     });
-// });

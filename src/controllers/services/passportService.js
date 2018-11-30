@@ -15,6 +15,7 @@ const {
   Users,
   OperatorTokens,
   UserTokens,
+  Plans,
 } = require('../../models');
 
 const op = Sequelize.Op;
@@ -29,6 +30,20 @@ const getOperatorInfomation = (operator) => ({
   phoneNumber: operator.phoneNumber,
   email: operator.email,
   imagePath: operator.imagePath,
+});
+const getUserInfomation = (user) => ({
+  id: user.id,
+  role: {
+    id: user.role.id,
+    name: user.role.name,
+  },
+  plan: {
+    id: user.plan.id,
+    name: user.plan.name,
+  },
+  fullName: user.fullName,
+  phoneNumber: user.phoneNumber,
+  imagePath: user.imagePath,
 });
 
 // STRATEGY FOR WEB LOGIN
@@ -215,6 +230,14 @@ passport.use('mobile-login', new LocalStrategy({
           [op.eq]: phoneNumber,
         },
       },
+      include: [{
+        model: Roles,
+        as: 'role',
+      }, {
+        model: Plans,
+        as: 'plan',
+        attributes: ['id', 'name'],
+      }],
     });
 
     if (!user) {
@@ -228,17 +251,10 @@ passport.use('mobile-login', new LocalStrategy({
         message: 'User is not verified',
       });
     } else if (user) {
-      const validatePassword = await bcrypt.compare(password, user.password || 'none');
+      const validatePassword = await bcrypt.compare(password, user.password || 'none'); // password is null in some fields
       if (validatePassword) {
-        const userData = {
-          id: user.id,
-          roleId: user.roleId,
-          planId: user.planId,
-          fullName: user.fullName,
-          phoneNumber: user.phoneNumber,
-          carrier: user.carrier,
-        };
-        done(null, userData);
+        const userInfomation = await getUserInfomation(user);
+        done(null, userInfomation);
       } else {
         done(null, false, {
           status: 400,
@@ -336,7 +352,7 @@ passport.use('mobile-logout', new JwtStrategy({
 }));
 
 // FUNCTION FOR RESPOND JWT FAILURES
-const checkJwtFailures = (req, res, next) => passport.authenticate('web-jwt', (error, user, info) => {
+const webJwtAuthorize = (req, res, next) => passport.authenticate('web-jwt', (error, user, info) => {
   if (error) {
     res.status(500).json({
       message: 'Internal server error',
@@ -353,5 +369,5 @@ const checkJwtFailures = (req, res, next) => passport.authenticate('web-jwt', (e
 })(req, res);
 
 module.exports = {
-  checkJwtFailures,
+  webJwtAuthorize,
 };

@@ -8,7 +8,7 @@ const Sequelize = require('sequelize');
 const moment = require('moment-timezone');
 
 const config = require('../config/APIConfig');
-// const constant = require('../config/APIConstant');
+const constant = require('../config/APIConstant');
 const tokenHelper = require('../helpers/tokenHelper');
 const emailHelper = require('../helpers/emailHelper');
 const passportService = require('./services/passportService');
@@ -63,7 +63,7 @@ const webLogout = async (req, res) => {
 };
 const createOperator = async (req, res) => {
   multerService.validateUploadImage(req, res, async () => {
-    passportService.checkJwtFailures(req, res, (operator, newToken) => {
+    passportService.webJwtAuthorize(req, res, (operator, newToken) => {
       validationHelper.bodyValidator(req, res, ['fullName', 'email', 'roleId'], async () => {
         validationHelper.operatorCreationValidator(req, res, operator, newToken, async () => {
           try {
@@ -76,7 +76,7 @@ const createOperator = async (req, res) => {
               verified: false,
               activated: true,
             });
-            tokenHelper.storeConfirmationToken(newOperator.email, newOperator.id, 48);
+            tokenHelper.storeConfirmationToken(newOperator.email, newOperator.id, operator.id, 48);
 
             res.status(201).json({
               token: newToken,
@@ -106,7 +106,7 @@ const createOperator = async (req, res) => {
 };
 const editOperator = async (req, res) => {
   multerService.validateUploadImage(req, res, async () => {
-    passportService.checkJwtFailures(req, res, async (operator, newToken) => {
+    passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
       try {
         const imagePathTemp = operator.imagePath;
         const newPassword = req.body.password ? await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)) : undefined;
@@ -165,7 +165,7 @@ const editOperator = async (req, res) => {
   });
 };
 const activateOperator = async (req, res) => {
-  passportService.checkJwtFailures(req, res, (operator, newToken) => {
+  passportService.webJwtAuthorize(req, res, (operator, newToken) => {
     validationHelper.administratorValidator(req, res, operator, newToken, async () => {
       try {
         const foundOperator = await Operators.findOne({
@@ -215,47 +215,47 @@ const activateOperator = async (req, res) => {
 
 // MOBILE AUTHENTICATION
 const mobileSignup = async (req, res) => {
-  try {
-    const data = {
-      roleId: 2,
-      phoneNumber: req.body.phoneNumber,
-      carrier: req.body.carrier,
-      password: req.body.password,
-    };
-    const createdUser = await Users.create(data);
-    bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then((hashed) => {
-      createdUser.update({
-        password: hashed,
+  validationHelper.bodyValidator(req, res, ['phoneNumber', 'password'], async () => {
+    try {
+      const password = await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10));
+      await Users.create({
+        roleId: constant.ROLE.USER,
+        planId: constant.PLAN.BASIC,
+        phoneNumber: req.body.phoneNumber,
+        password,
+        verified: true,
       });
-    });
-    const resData = {
-      phoneNumber: createdUser.phoneNumber,
-      carrier: createdUser.carrier,
-    };
-    res.status(201).json({
-      message: 'created',
-      data: resData,
-    });
-  } catch (err) {
-    if (err.errors) {
-      res.status(400).json({
-        message: err.errors[0].message,
+      res.status(201).json({
+        message: 'sign up successfully',
       });
-    } else {
-      res.status(500).json({ message: 'Internal server error' });
+    } catch (err) {
+      if (err.errors) {
+        res.status(400).json({
+          message: err.errors[0].message,
+        });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
     }
-  }
+  });
 };
 const mobileLogin = async (req, res) => {
   passport.authenticate('mobile-login', async (error, user, info) => {
     if (error) {
       res.status(500).json({ message: 'Internal server error' });
     } else if (!user) {
-      res.status(info.status).json({
-        message: info.message,
-      });
+      if (!info.status) {
+        res.status(400).json({
+          message: info.message,
+        });
+      } else {
+        res.status(info.status).json({
+          message: info.message,
+        });
+      }
     } else {
       res.status(200).json({
+        info: user,
         token: await tokenHelper.getUserToken(user),
       });
     }
@@ -280,7 +280,7 @@ const getVerifyWithConfirmationTokenPage = async (req, res) => {
   res.sendFile(path.join(__dirname, './templates/confirmationPage.html'));
 };
 const sendVerificationEmail = async (req, res) => {
-  passportService.checkJwtFailures(req, res, (operator) => {
+  passportService.webJwtAuthorize(req, res, (operator) => {
     validationHelper.bodyValidator(req, res, ['userId'], async (body) => {
       const foundOperator = await Operators.findOne({
         where: {

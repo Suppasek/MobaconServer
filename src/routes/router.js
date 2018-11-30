@@ -3,8 +3,9 @@ const path = require('path');
 const express = require('express');
 
 const authController = require('../controllers/authController');
-const operatorController = require('../controllers/operatorController');
 const planController = require('../controllers/planController');
+const requestController = require('../controllers/requestController');
+const operatorController = require('../controllers/operatorController');
 
 const router = express.Router();
 
@@ -21,11 +22,12 @@ router.patch('/web/operator/activation/:userId', authController.activateOperator
 router.get('/web/plans', planController.getPlans);
 router.patch('/web/plan/:planId', planController.updatePlan);
 
-router.get('/web/requests');
-router.get('/web/request/:id');
-router.post('/web/request');
-router.patch('/web/request');
-router.delete('/web/request');
+router.get('/web/requests', requestController.getRequests);
+router.get('/web/requests/accepted', requestController.getAcceptedRequests);
+router.get('/web/request/:requestId', requestController.getRequestById);
+router.patch('/web/request/:requestId/acceptance', requestController.requestAcceptance);
+router.put('/web/request/:requestId/memo', requestController.putRequestMemoById);
+router.put('/web/request/:requestId/review', requestController.putRequesReviewById);
 
 // API ROUTING FOR MOBILE APPLICATION
 router.post('/mobile/signup', authController.mobileSignup);
@@ -41,7 +43,6 @@ router.post('/web/changePassword', authController.sendChangePasswordEmail);
 router.patch('/web/changePassword', authController.changePasswordwithChangePasswordToken);
 
 // GET IMAGE FILE
-// /mobacon/api/web/operator/image/default_profile.png
 router.get('/web/operator/image/:imageName', (req, res) => {
   const imagePath = path.join(__dirname, `../../assets/images/operators/${req.params.imageName}`);
 

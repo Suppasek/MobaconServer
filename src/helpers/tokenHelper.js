@@ -40,13 +40,13 @@ const getUserToken = async (user, time = 12) => {
 
   return token;
 };
-const storeConfirmationToken = async (email, userId, time = 12) => {
+const storeConfirmationToken = async (email, userId, createdBy, time = 12) => {
   const token = await uniqid(await uniqid.time());
   await ConfirmationTokens.create({
     userId,
     token,
     expired: moment().tz(config.timezone).add(time, 'hours'),
-    createdBy: userId,
+    createdBy,
   });
   emailHelper.sendVerificationMail(email, token);
 };
