@@ -42,6 +42,10 @@ router.patch('/web/verification', authController.verifyWithConfirmationToken);
 router.post('/web/changePassword', authController.sendChangePasswordEmail);
 router.patch('/web/changePassword', authController.changePasswordwithChangePasswordToken);
 
+// API ROUTING FOR USER VERIFICATION WITH OTP
+router.post('/mobile/user/verification', authController.sendVerificationOTP);
+router.patch('/mobile/user/:userId/verification', authController.verifyUserWithOTP);
+
 // GET IMAGE FILE
 router.get('/web/operator/image/:imageName', (req, res) => {
   const imagePath = path.join(__dirname, `../../assets/images/operators/${req.params.imageName}`);

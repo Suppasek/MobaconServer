@@ -4,10 +4,8 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       validate: {
         notEmpty: true,
-        isNumeric: true,
-        len: [4, 4],
       },
-      type: DataTypes.STRING(4),
+      type: DataTypes.STRING(500),
     },
     expired: {
       allowNull: false,

@@ -8,7 +8,7 @@ module.exports = {
     },
     code: {
       allowNull: false,
-      type: Sequelize.STRING(4),
+      type: Sequelize.STRING(500),
     },
     expired: {
       allowNull: false,
