@@ -9,6 +9,7 @@ const moment = require('moment-timezone');
 
 const config = require('../config/APIConfig');
 const constant = require('../config/APIConstant');
+const otpHelper = require('../helpers/otpHelper');
 const tokenHelper = require('../helpers/tokenHelper');
 const emailHelper = require('../helpers/emailHelper');
 const passportService = require('./services/passportService');
@@ -17,9 +18,12 @@ const multerService = require('./services/multerService');
 
 const op = Sequelize.Op;
 const {
+  Roles,
   Operators,
   Users,
+  Plans,
   ConfirmationTokens,
+  ConfirmationCodes,
 } = require('../models');
 
 // METHODS
@@ -218,15 +222,33 @@ const mobileSignup = async (req, res) => {
   validationHelper.bodyValidator(req, res, ['phoneNumber', 'password'], async () => {
     try {
       const password = await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10));
-      await Users.create({
+      const createdUser = await Users.create({
         roleId: constant.ROLE.USER,
         planId: constant.PLAN.BASIC,
         phoneNumber: req.body.phoneNumber,
         password,
-        verified: true,
       });
+      const user = await Users.findOne({
+        attributes: ['id', 'phoneNumber', 'createdAt'],
+        where: {
+          id: {
+            [op.eq]: createdUser.id,
+          },
+        },
+        include: [{
+          model: Roles,
+          as: 'role',
+          attributes: ['id', 'name'],
+        }, {
+          model: Plans,
+          as: 'plan',
+          attributes: ['id', 'name'],
+        }],
+      });
+      await otpHelper.storeConfirmationCode(user.id);
       res.status(201).json({
         message: 'sign up successfully',
+        data: user,
       });
     } catch (err) {
       if (err.errors) {
@@ -443,6 +465,83 @@ const changePasswordwithChangePasswordToken = async (req, res) => {
   });
 };
 
+// USER VERIFICATION WITH OTP
+const sendVerificationOTP = async (req, res) => {
+  validationHelper.bodyValidator(req, res, ['phoneNumber'], async () => {
+    try {
+      const user = await Users.findOne({
+        where: {
+          phoneNumber: {
+            [op.eq]: req.body.phoneNumber,
+          },
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({
+          message: 'user not found',
+        });
+      } else if (user.verified) {
+        res.status(400).json({
+          message: 'user has verified',
+        });
+      } else {
+        await otpHelper.storeConfirmationCode(user.id);
+        res.status(200).json({
+          message: 'send otp successfully',
+        });
+      }
+    } catch (err) {
+      if (err.errors) {
+        res.status(400).json({
+          message: err.errors[0].message,
+        });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  });
+};
+const verifyUserWithOTP = async (req, res) => {
+  validationHelper.bodyValidator(req, res, ['otp'], async () => {
+    try {
+      const user = await Users.findOne({
+        where: {
+          id: {
+            [op.eq]: req.params.userId,
+          },
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({
+          message: 'user not found',
+        });
+      } else {
+        const result = await otpHelper.verifyOtp(req.body.otp, user.id);
+
+        if (!result.ok) {
+          res.status(400).json({
+            message: result.message,
+          });
+        } else {
+          res.status(200).json({
+            message: result.message,
+          });
+        }
+      }
+    } catch (err) {
+      if (err.errors) {
+        res.status(400).json({
+          message: err.errors[0].message,
+        });
+      } else {
+        res.status(500).json({ message: 'Internal server error' });
+      }
+    }
+  });
+};
+
 module.exports = {
   webLogin,
   webLogout,
@@ -459,4 +558,7 @@ module.exports = {
   verifyWithConfirmationToken,
   sendChangePasswordEmail,
   changePasswordwithChangePasswordToken,
+
+  sendVerificationOTP,
+  verifyUserWithOTP,
 };
