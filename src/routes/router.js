@@ -23,11 +23,12 @@ router.get('/web/plans', planController.getPlans);
 router.patch('/web/plan/:planId', planController.updatePlan);
 
 router.get('/web/requests', requestController.getRequests);
+router.get('/web/request/bills/:userId', requestController.getBills);
 router.get('/web/requests/accepted', requestController.getAcceptedRequests);
 router.get('/web/request/:requestId', requestController.getRequestById);
 router.patch('/web/request/:requestId/acceptance', requestController.requestAcceptance);
 router.put('/web/request/:requestId/memo', requestController.putRequestMemoById);
-router.put('/web/request/:requestId/review', requestController.putRequesReviewById);
+router.post('/web/request/:requestId/review', requestController.createRequestReviewById);
 
 // API ROUTING FOR MOBILE APPLICATION
 router.post('/mobile/signup', authController.mobileSignup);

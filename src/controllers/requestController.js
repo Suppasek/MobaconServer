@@ -10,6 +10,7 @@ const {
   Offers,
   Plans,
 } = require('../models');
+const billSchema = require('../mongoSchema/billSchema');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
 const constant = require('../config/APIConstant');
@@ -304,10 +305,10 @@ const putRequestMemoById = (req, res) => {
     });
   });
 };
-const putRequesReviewById = (req, res) => {
+const createRequestReviewById = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
-      validationHelper.bodyValidator(req, res, ['minutes', 'sms', 'internet', 'cloudStorage'], async () => {
+      validationHelper.bodyValidator(req, res, ['review', 'suggestion'], async () => {
         try {
           const request = await Requests.findOne({
             where: {
@@ -332,34 +333,19 @@ const putRequesReviewById = (req, res) => {
               token: newToken,
               message: 'request is not your',
             });
-          } else if (!request.offerId) {
+          } else if (request.offerId) {
+            res.status(403).json({
+              token: newToken,
+              message: 'request has reviewed',
+            });
+          } else {
             const newOffer = await Offers.create({
-              minutes: req.body.minutes,
-              sms: req.body.sms,
-              internet: req.body.internet,
-              cloudStorage: req.body.cloudStorage,
+              review: req.body.review,
+              suggestion: req.body.suggestion,
             });
             await request.update({
               offerId: newOffer.id,
               status: 'Reviewed',
-            });
-
-            res.status(200).json({
-              token: newToken,
-              message: 'update review successfully',
-            });
-          } else {
-            await Offers.update({
-              minutes: req.body.minutes,
-              sms: req.body.sms,
-              internet: req.body.internet,
-              cloudStorage: req.body.cloudStorage,
-            }, {
-              where: {
-                id: {
-                  [op.eq]: request.offerId,
-                },
-              },
             });
 
             res.status(200).json({
@@ -384,6 +370,42 @@ const putRequesReviewById = (req, res) => {
     });
   });
 };
+const getBills = (req, res) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(req, res, operator, newToken, async () => {
+      try {
+        const foundbills = await Requests.findAll({
+          attributes: ['id', 'billRef'],
+          where: {
+            userId: {
+              [op.eq]: req.params.userId,
+            },
+          },
+        });
+
+        const bills = await billSchema.find({
+          _id: {
+            $in: await foundbills.map((bill) => bill.billRef),
+          },
+        });
+
+        res.status(200).send(bills);
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
+};
 
 module.exports = {
   getRequests,
@@ -391,5 +413,6 @@ module.exports = {
   getRequestById,
   requestAcceptance,
   putRequestMemoById,
-  putRequesReviewById,
+  createRequestReviewById,
+  getBills,
 };

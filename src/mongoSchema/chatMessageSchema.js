@@ -1,6 +1,18 @@
 const mongoose = require('mongoose');
 
 const ChatMessageSchema = new mongoose.Schema({
+  read: {
+    user: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+    operator: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
+  },
   data: [{
     message: {
       type: String,

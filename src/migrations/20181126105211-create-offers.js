@@ -6,16 +6,10 @@ module.exports = {
       primaryKey: true,
       type: Sequelize.INTEGER,
     },
-    minutes: {
+    review: {
       type: Sequelize.STRING(500),
     },
-    sms: {
-      type: Sequelize.STRING(500),
-    },
-    internet: {
-      type: Sequelize.STRING(500),
-    },
-    cloudStorage: {
+    suggestion: {
       type: Sequelize.STRING(500),
     },
     liked: {
