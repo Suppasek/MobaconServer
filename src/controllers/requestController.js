@@ -389,7 +389,7 @@ const getBills = (req, res) => {
           },
         });
 
-        res.status(200).send(bills);
+        res.status(200).json(bills);
       } catch (err) {
         if (err.errors) {
           res.status(400).json({
