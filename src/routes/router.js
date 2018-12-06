@@ -18,6 +18,7 @@ router.get('/web/operator/:userId', operatorController.getOperatorById);
 router.post('/web/operator', authController.createOperator);
 router.patch('/web/operator', authController.editOperator);
 router.patch('/web/operator/activation/:userId', authController.activateOperator);
+router.patch('/web/operator/password', authController.changePassword);
 
 router.get('/web/plans', planController.getPlans);
 router.patch('/web/plan/:planId', planController.updatePlan);
