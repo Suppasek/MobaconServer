@@ -5,10 +5,11 @@
   "main": "src/mainApp.js",
   "scripts": {
     "start": "nodemon src/mainApp.js",
+    "seed-bill": "node src/mock_up/seed.js",
     "migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate",
     "undo-migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all",
     "seed": "sequelize --options-path=src/config/sequelize-options.js db:seed:all",
-    "reset-db": "npm run undo-migrate && npm run migrate && npm run seed",
+    "reset-db": "npm run seed-bill && npm run undo-migrate && npm run migrate && npm run seed",
     "chat-api": "nodemon src/chatAPI/chatApp.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
