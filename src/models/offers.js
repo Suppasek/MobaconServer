@@ -1,24 +1,12 @@
 module.exports = (sequelize, DataTypes) => {
   const Offers = sequelize.define('Offers', {
-    minutes: {
+    review: {
       validate: {
         notEmpty: true,
       },
       type: DataTypes.STRING(500),
     },
-    sms: {
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.STRING(500),
-    },
-    internet: {
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.STRING(500),
-    },
-    cloudStorage: {
+    suggestion: {
       validate: {
         notEmpty: true,
       },

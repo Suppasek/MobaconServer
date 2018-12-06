@@ -1,33 +1,42 @@
-const fs = require('fs');
-const path = require('path');
-const ObjectId = require('node-time-uuid');
+const moment = require('moment-timezone');
+const rn = require('random-number');
 
-const bills = [];
-for (let i = 1; i <= 12; i += 1) {
-  bills.push({
-    id: new ObjectId().toString('hex'),
-    month: i,
-    amount: Math.floor(Math.random() * 500) + 1,
+const apiConfig = require('../config/APIConfig');
+const billSchema = require('../mongoSchema/billSchema');
+
+const numberRandom = (min, max) => rn({
+  min,
+  max,
+  integer: true,
+});
+const getBillData = () => {
+  const minutes = numberRandom(100, 500) * 2;
+  const sms = numberRandom(50, 200) * 5;
+  const internet = numberRandom(40, 100) * 10;
+
+  return {
+    amount: (minutes + sms + internet) + (minutes + sms + internet) * (40 / 100),
     used: {
-      minutes: Math.floor(Math.random() * 200) + 1,
-      sms: Math.floor(Math.random() * 50) + 1,
-      internet: Math.floor(Math.random() * 50) + 1,
+      minutes,
+      sms,
+      internet,
     },
-    limit: {
-      minutes: 300,
-      sms: 70,
-      internet: 60,
-    },
-    emissionAt: `2018-${(`0${i}`).slice(-2)}-05 10:00:00`,
-    paidAt: `2018-${(`0${(i + 1) > 12 ? (i + 1) % 12 : i + 1}`).slice(-2)}-20 20:00:00`,
+  };
+};
+
+const data = [];
+
+for (let i = 1; i <= 12; i += 1) {
+  data.push({
+    userId: i,
+    carrier: 1,
+    ...getBillData(),
+    emissionAt: moment().tz(apiConfig.timezone).add(numberRandom(-200, -25), 'hours'),
+    paidAt: moment().tz(apiConfig.timezone).add(numberRandom(-24, -1), 'hours'),
   });
 }
 
-const json = {
-  bills,
+module.exports = async () => {
+  await billSchema.deleteMany({});
+  await billSchema.insertMany(data);
 };
-
-fs.writeFile(path.join(__dirname, 'bills.json'), JSON.stringify(json), 'utf8', (err) => {
-  if (err) console.log(err);
-  else console.log('Run mock up billing seed successfully');
-});
