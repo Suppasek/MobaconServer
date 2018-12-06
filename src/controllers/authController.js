@@ -23,7 +23,6 @@ const {
   Users,
   Plans,
   ConfirmationTokens,
-  ConfirmationCodes,
 } = require('../models');
 
 // METHODS
@@ -64,6 +63,52 @@ const webLogout = async (req, res) => {
       res.status(400).json(info);
     }
   })(req, res);
+};
+const changePassword = async (req, res) => {
+  passportService.webJwtAuthorize(req, res, (operator, newToken) => {
+    validationHelper.bodyValidator(req, res, ['oldPassword', 'newPassword'], async () => {
+      try {
+        const foundOperator = await Operators.findOne({
+          where: {
+            id: {
+              [op.eq]: operator.id,
+            },
+          },
+        });
+
+        const validatePassword = await bcrypt.compare(req.body.oldPassword, foundOperator.password);
+
+        if (!validatePassword) {
+          res.status(403).json({
+            token: newToken,
+            message: 'old password is invalid',
+          });
+        } else {
+          const newPassword = await bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10));
+          await foundOperator.update({
+            password: newPassword,
+          });
+
+          res.status(200).json({
+            token: newToken,
+            message: 'change password successfully',
+          });
+        }
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
 };
 const createOperator = async (req, res) => {
   multerService.validateUploadImage(req, res, async () => {
@@ -113,11 +158,9 @@ const editOperator = async (req, res) => {
     passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
       try {
         const imagePathTemp = operator.imagePath;
-        const newPassword = req.body.password ? await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)) : undefined;
         const updatedOperator = await operator.update({
           fullName: req.body.fullName,
           phoneNumber: req.body.phoneNumber,
-          password: newPassword,
           imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
         }, {
           where: {
@@ -545,6 +588,7 @@ const verifyUserWithOTP = async (req, res) => {
 module.exports = {
   webLogin,
   webLogout,
+  changePassword,
   createOperator,
   editOperator,
   activateOperator,

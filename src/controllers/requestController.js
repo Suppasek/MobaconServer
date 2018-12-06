@@ -174,7 +174,7 @@ const getRequestById = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
-        const request = await Requests.findAll({
+        const request = await Requests.findOne({
           where: {
             id: {
               [op.eq]: req.params.requestId,
@@ -192,6 +192,10 @@ const getRequestById = (req, res) => {
             include: [{
               model: Roles,
               as: 'role',
+              attributes: ['id', 'name'],
+            }, {
+              model: Plans,
+              as: 'plan',
               attributes: ['id', 'name'],
             }],
           }, {
@@ -211,11 +215,28 @@ const getRequestById = (req, res) => {
             as: 'offer',
           }],
         });
-        res.status(200).json({
-          token: newToken,
-          recordsTotal: request.length,
-          data: request,
-        });
+
+        if (!request) {
+          res.status(404).json({
+            token: newToken,
+            message: 'request not found',
+          });
+        } else if (!request.operator) {
+          res.status(403).json({
+            token: newToken,
+            message: 'request is not accepted',
+          });
+        } else if (request.operator.id !== operator.id) {
+          res.status(403).json({
+            token: newToken,
+            message: 'request is not your',
+          });
+        } else {
+          res.status(200).json({
+            token: newToken,
+            data: request,
+          });
+        }
       } catch (err) {
         res.status(500).json({
           token: newToken,
