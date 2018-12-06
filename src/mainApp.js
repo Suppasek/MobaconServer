@@ -9,8 +9,6 @@ const chatSocket = require('./chatApp');
 const config = require('./config/APIConfig');
 const router = require('./routes/router').Router;
 
-const seedMockUpBills = require('./mock_up/seed-mock_up_bills');
-
 const app = express()
   .use(cors())
   .use(bodyParser.json())
@@ -31,7 +29,7 @@ const httpsServer = https.createServer({
   console.log(`Start https server at\t ${config.baseUrl}:${config.httpsPort}`);
 });
 
-// chatSocket(httpServer);
+chatSocket(httpServer);
 
 module.exports = {
   HttpServer: httpServer,

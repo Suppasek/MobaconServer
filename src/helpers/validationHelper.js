@@ -36,17 +36,34 @@ const bodyValidator = async (req, res, keys, next) => {
 };
 const queryValidator = async (req, res, keys, next) => {
   const invalid = [];
-  await forEach(keys, async (key) => {
-    if (req.query[key] === undefined) {
-      invalid.push(key);
-    }
-  });
-  if (invalid.length > 0) {
-    res.status(400).json({
-      message: `${invalid} is required`,
+  try {
+    await forEach(keys, async (key) => {
+      if (typeof key === 'object') {
+        if (req.query[key[0]] === undefined) {
+          invalid.push(key);
+        } else if (typeof req.query[key[0]] !== key[1]) {
+          invalid.push(`${key[0]}(${key[1]})`);
+        }
+      } else if (typeof key === 'string') {
+        if (req.query[key] === undefined) {
+          invalid.push(key);
+        }
+      } else {
+        throw new Error('Invalid type');
+      }
     });
-  } else {
-    next(req.query);
+
+    if (invalid.length > 0) {
+      res.status(400).json({
+        message: `${invalid} is required`,
+      });
+    } else {
+      next(req.query);
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: 'Internal server error',
+    });
   }
 };
 const operatorCreationValidator = (req, res, operator, newToken, next) => {

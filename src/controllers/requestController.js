@@ -18,17 +18,28 @@ const constant = require('../config/APIConstant');
 const op = Sequelize.Op;
 
 // METHODS
-
+const getPage = async (page, limit) => {
+  if ((Number)(page) && (Number)(limit)) {
+    return ((Number)(page) - 1) * (Number)(limit);
+  } else {
+    return undefined;
+  }
+};
 
 // CONTROLLER METHODS
 const getRequests = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
+        const recordsTotal = await Requests.count({});
         const requests = await Requests.findAll({
-          where: {
-
-          },
+          offset: await getPage(req.query.page, req.query.limit),
+          limit: (Number)(req.query.limit) || undefined,
+          order: [
+            Sequelize.fn('field', Sequelize.col('status'), 'Accepted', 'Reviewed', 'Pending'),
+            ['createdAt', 'DESC'],
+            ['id', 'ASC'],
+          ],
           attributes: ['id', 'billRef', 'status', 'createdAt'],
           include: [{
             model: Carriers,
@@ -60,7 +71,8 @@ const getRequests = (req, res) => {
         });
         res.status(200).json({
           token: newToken,
-          recordsTotal: requests.length,
+          recordsTotal,
+          filteredTotal: requests.length,
           data: requests,
         });
       } catch (err) {
@@ -76,15 +88,44 @@ const getAcceptedRequests = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
+        const recordsTotal = await Requests.count({
+          where: {
+            operatorId: {
+              [op.eq]: operator.id,
+            },
+            [op.or]: [{
+              status: {
+                [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
+              },
+            }, {
+              status: {
+                [op.eq]: constant.REQUEST_STATUS.REVIEWED,
+              },
+            }],
+          },
+        });
         const requests = await Requests.findAll({
           where: {
             operatorId: {
               [op.eq]: operator.id,
             },
-            status: {
-              [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
-            },
+            [op.or]: [{
+              status: {
+                [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
+              },
+            }, {
+              status: {
+                [op.eq]: constant.REQUEST_STATUS.REVIEWED,
+              },
+            }],
           },
+          offset: await getPage(req.query.page, req.query.limit),
+          limit: (Number)(req.query.limit) || undefined,
+          order: [
+            Sequelize.fn('field', Sequelize.col('status'), 'Accepted', 'Reviewed'),
+            ['createdAt', 'DESC'],
+            ['id', 'ASC'],
+          ],
           attributes: ['id', 'billRef', 'status', 'createdAt'],
           include: [{
             model: Carriers,
@@ -116,7 +157,8 @@ const getAcceptedRequests = (req, res) => {
         });
         res.status(200).json({
           token: newToken,
-          recordsTotal: requests.length,
+          recordsTotal,
+          filteredTotal: requests.length,
           data: requests,
         });
       } catch (err) {
