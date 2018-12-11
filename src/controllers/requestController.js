@@ -10,10 +10,11 @@ const {
   Offers,
   Plans,
 } = require('../models');
+const db = require('../models/index');
+const constant = require('../config/APIConstant');
 const billSchema = require('../mongoSchema/billSchema');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
-const constant = require('../config/APIConstant');
 
 const op = Sequelize.Op;
 
@@ -411,7 +412,7 @@ const createRequestReviewById = (req, res) => {
               status: 'Reviewed',
             });
 
-            res.status(200).json({
+            res.status(201).json({
               token: newToken,
               message: 'update review successfully',
             });
@@ -433,7 +434,7 @@ const createRequestReviewById = (req, res) => {
     });
   });
 };
-const getBills = (req, res) => {
+const getBillByUserId = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
@@ -469,6 +470,56 @@ const getBills = (req, res) => {
     });
   });
 };
+const getReviewByUserId = (req, res) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(req, res, operator, newToken, async () => {
+      try {
+        const result = await Users.findOne({
+          where: {
+            id: {
+              [op.eq]: req.params.userId,
+            },
+          },
+          attributes: ['fullName'],
+          order: [
+            ['request', 'createdAt', 'DESC'],
+          ],
+          include: [{
+            model: Requests,
+            as: 'request',
+            attributes: ['billRef', 'createdAt'],
+            include: [{
+              model: Carriers,
+              as: 'carrier',
+              attributes: ['id', 'name'],
+            }, {
+              model: Offers,
+              as: 'offer',
+              attributes: ['review', 'suggestion', 'liked', 'createdAt'],
+            }],
+          }],
+        });
+
+        res.status(200).json({
+          token: newToken,
+          data: result,
+        });
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
+};
 
 module.exports = {
   getRequests,
@@ -477,5 +528,6 @@ module.exports = {
   requestAcceptance,
   putRequestMemoById,
   createRequestReviewById,
-  getBills,
+  getBillByUserId,
+  getReviewByUserId,
 };
