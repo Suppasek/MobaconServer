@@ -1,9 +1,8 @@
-const fs = require('fs');
-const path = require('path');
 const express = require('express');
 
 const authController = require('../controllers/authController');
 const planController = require('../controllers/planController');
+const imageController = require('../controllers/imageController');
 const requestController = require('../controllers/requestController');
 const operatorController = require('../controllers/operatorController');
 
@@ -49,24 +48,7 @@ router.post('/mobile/user/verification', authController.sendVerificationOTP);
 router.patch('/mobile/user/:userId/verification', authController.verifyUserWithOTP);
 
 // GET IMAGE FILE
-router.get('/web/operator/image/:imageName', (req, res) => {
-  const imagePath = path.join(__dirname, `../../assets/images/operators/${req.params.imageName}`);
-
-  if (fs.existsSync(imagePath)) {
-    res.sendFile(imagePath);
-  } else {
-    res.status(404).json({
-      message: 'image not found',
-    });
-  }
-});
-
-// NOT FOUND [404]
-router.all('*', (req, res) => {
-  res.status(404).json({
-    message: 'not found',
-  });
-});
+router.get('/web/operator/image/:imageName', imageController.getOperatorImage);
 
 module.exports = {
   Router: router,
