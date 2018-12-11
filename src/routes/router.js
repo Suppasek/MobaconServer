@@ -23,7 +23,8 @@ router.get('/web/plans', planController.getPlans);
 router.patch('/web/plan/:planId', planController.updatePlan);
 
 router.get('/web/requests', requestController.getRequests);
-router.get('/web/request/bills/:userId', requestController.getBills);
+router.get('/web/request/bills/:userId', requestController.getBillByUserId);
+router.get('/web/request/review/:userId', requestController.getReviewByUserId);
 router.get('/web/requests/accepted', requestController.getAcceptedRequests);
 router.get('/web/request/:requestId', requestController.getRequestById);
 router.patch('/web/request/:requestId/acceptance', requestController.requestAcceptance);

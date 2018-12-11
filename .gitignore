@@ -74,3 +74,4 @@ typings/
 
 # mobacon-server
 /assets/
+src/mock_up/billIds.json
