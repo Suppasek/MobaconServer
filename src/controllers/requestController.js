@@ -510,7 +510,6 @@ const getReviewByUserId = (req, res) => {
           data: result,
         });
       } catch (err) {
-        console.log(err);
         if (err.errors) {
           res.status(400).json({
             token: newToken,
