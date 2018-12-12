@@ -1,18 +1,51 @@
+const twilio = require('twilio');
 const bcrypt = require('bcryptjs');
 const sequelize = require('sequelize');
+const randomString = require('random-string');
 const moment = require('moment-timezone');
 
 const config = require('../config/APIConfig');
-
-const op = sequelize.Op;
+const twilioConfig = require('../config/TwilioConfig');
 
 const {
   Users,
   ConfirmationCodes,
 } = require('../models');
 
-const storeConfirmationCode = async (createdBy, time = 5) => {
-  const rawCode = '5555';
+const twilioClient = twilio(twilioConfig.accountSid, twilioConfig.authToken);
+const op = sequelize.Op;
+
+const ramdomOtp = async () => {
+  const otp = await randomString({
+    length: 4,
+    numeric: true,
+    letters: false,
+    special: false,
+  });
+  return otp;
+};
+const sendOtp = (prefixPhoneNumber, phoneNumber, rawConfirmCode) => {
+  try {
+    twilioClient.messages.create({
+      to: `${prefixPhoneNumber}${phoneNumber.slice(1)}`,
+      from: twilioConfig.phoneNumer,
+      body: `Your mobacon verification code is ${rawConfirmCode}`,
+    });
+    return true;
+  } catch (err) {
+    return false;
+  }
+};
+const storeConfirmationCode = async (createdBy, time = 1) => {
+  const rawCode = await ramdomOtp();
+  const user = await Users.findOne({
+    where: {
+      id: {
+        [op.eq]: createdBy,
+      },
+    },
+  });
+  sendOtp(twilioConfig.prefixDestinationPhoneNumber, user.phoneNumber, rawCode);
   const code = await bcrypt.hash(rawCode, bcrypt.genSaltSync(10));
 
   await ConfirmationCodes.update({

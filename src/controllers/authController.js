@@ -546,12 +546,12 @@ const sendVerificationOTP = async (req, res) => {
   });
 };
 const verifyUserWithOTP = async (req, res) => {
-  validationHelper.bodyValidator(req, res, ['otp'], async () => {
+  validationHelper.bodyValidator(req, res, ['phoneNumber', 'otp'], async () => {
     try {
       const user = await Users.findOne({
         where: {
-          id: {
-            [op.eq]: req.params.userId,
+          phoneNumber: {
+            [op.eq]: req.body.phoneNumber,
           },
         },
       });

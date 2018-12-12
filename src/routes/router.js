@@ -46,7 +46,7 @@ router.patch('/web/changePassword', authController.changePasswordwithChangePassw
 
 // API ROUTING FOR USER VERIFICATION WITH OTP
 router.post('/mobile/user/verification', authController.sendVerificationOTP);
-router.patch('/mobile/user/:userId/verification', authController.verifyUserWithOTP);
+router.patch('/mobile/user/verification', authController.verifyUserWithOTP);
 
 // GET IMAGE FILE
 router.get('/web/operator/image/:imageName', imageController.getOperatorImage);
