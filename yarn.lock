@@ -3782,6 +3782,11 @@ random-number@^0.0.9:
   resolved "https://registry.yarnpkg.com/random-number/-/random-number-0.0.9.tgz#5907b96f05041807c52aed601c869524d86fbbd5"
   integrity sha512-ipG3kRCREi/YQpi2A5QGcvDz1KemohovWmH6qGfboVyyGdR2t/7zQz0vFxrfxpbHQgPPdtVlUDaks3aikD1Ljw==
 
+random-string@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/random-string/-/random-string-0.2.0.tgz#a46e4375352beda9a0d7b0d19ed6d321ecd1d82d"
+  integrity sha1-pG5DdTUr7amg17DRntbTIezR2C0=
+
 range-parser@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/range-parser/-/range-parser-1.2.0.tgz#f49be6b487894ddc40dcc94a322f611092e00d5e"

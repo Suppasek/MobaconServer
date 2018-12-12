@@ -10,7 +10,6 @@ const {
   Offers,
   Plans,
 } = require('../models');
-const db = require('../models/index');
 const constant = require('../config/APIConstant');
 const billSchema = require('../mongoSchema/billSchema');
 const passportService = require('./services/passportService');
