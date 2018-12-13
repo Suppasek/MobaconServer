@@ -41,7 +41,7 @@ const getUserToken = async (user, time = 12) => {
   return token;
 };
 const storeConfirmationToken = async (email, userId, createdBy, time = 12) => {
-  const token = await uniqid(await uniqid.time());
+  const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
   await ConfirmationTokens.create({
     userId,
     token,
@@ -51,7 +51,7 @@ const storeConfirmationToken = async (email, userId, createdBy, time = 12) => {
   emailHelper.sendVerificationMail(email, token);
 };
 const storeConfirmationTokenByOperator = async (email, userId, createdBy, time = 12) => {
-  const token = await uniqid(await uniqid.time());
+  const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
   await ConfirmationTokens.create({
     userId,
     token,

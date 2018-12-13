@@ -5,6 +5,7 @@ const planController = require('../controllers/planController');
 const imageController = require('../controllers/imageController');
 const requestController = require('../controllers/requestController');
 const operatorController = require('../controllers/operatorController');
+const reportHistoryController = require('../controllers/reportHistoryController');
 
 const router = express.Router();
 
@@ -35,6 +36,9 @@ router.post('/web/request/:requestId/review', requestController.createRequestRev
 router.post('/mobile/signup', authController.mobileSignup);
 router.post('/mobile/login', authController.mobileLogin);
 router.post('/mobile/logout', authController.mobileLogout);
+router.post('/mobile/changePassword', authController.sendChangePasswordSms);
+
+router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 
 // API ROUTING FOR USER VERIFICATION WITH EMAIL
 router.get('/confirm', authController.getVerifyWithConfirmationTokenPage);

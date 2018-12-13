@@ -279,26 +279,76 @@ passport.use('mobile-jwt', new JwtStrategy({
   session: false,
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
-  if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+
+  try {
     const foundToken = await UserTokens.findOne({
       where: {
         token: {
           [op.eq]: token,
         },
-        createdBy: {
-          [op.eq]: jwtPayload.data.id,
-        },
       },
     });
+
     if (!foundToken) {
-      done(null, false, { message: 'Invalid token' });
-    } else if (moment(foundToken.expired).tz(config.timezone) > moment().tz(config.timezone)) {
-      done(null, jwtPayload);
+      done(null, false, {
+        status: 401,
+        message: 'token is invalid',
+      });
+      if (req.file) {
+        fs.unlink(req.file.path, () => {});
+      }
+    } else if (foundToken.banned) {
+      done(null, false, {
+        status: 401,
+        message: 'token has expired',
+      });
+      if (req.file) {
+        fs.unlink(req.file.path, () => {});
+      }
     } else {
-      done(null, false, { message: 'Token has expired' });
+      const user = await Users.findOne({
+        attributes: ['id', 'fullName', 'phoneNumber', 'imagePath'],
+        where: {
+          id: {
+            [op.eq]: jwtPayload.data.id,
+          },
+        },
+        include: [{
+          model: Roles,
+          as: 'role',
+          attributes: ['id', 'name'],
+        }, {
+          model: Plans,
+          as: 'plan',
+          attributes: ['id', 'name'],
+        }],
+      });
+
+      if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+        done(null, user);
+      } else {
+        const isOutOfTime = moment.duration(moment().tz(config.timezone).diff(moment(jwtPayload.exp).tz(config.timezone))).asHours() > 120;
+
+        if (isOutOfTime) {
+          done(null, false, { message: 'token has expired' });
+          if (req.file) {
+            fs.unlink(req.file.path, () => {});
+          }
+        } else {
+          done(null, user, {
+            token: await tokenHelper.getUserToken(user),
+          });
+        }
+        foundToken.update({
+          banned: true,
+        });
+      }
     }
-  } else {
-    done(null, false, { message: 'Token has expired' });
+  } catch (err) {
+    if (req.file) {
+      fs.unlink(req.file.path, () => {});
+    }
+    done(err, false);
   }
 }));
 
@@ -367,7 +417,23 @@ const webJwtAuthorize = (req, res, next) => passport.authenticate('web-jwt', (er
     });
   }
 })(req, res);
+const mobileJwtAuthorize = (req, res, next) => passport.authenticate('mobile-jwt', (error, user, info) => {
+  if (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+    });
+  } else if (user) {
+    next(user, info ? info.token : undefined);
+  } else if (info.constructor.name === 'Error') {
+    res.status(401).json({ message: 'No auth token' });
+  } else {
+    res.status(info.status || 400).json({
+      message: info.message,
+    });
+  }
+})(req, res);
 
 module.exports = {
   webJwtAuthorize,
+  mobileJwtAuthorize,
 };

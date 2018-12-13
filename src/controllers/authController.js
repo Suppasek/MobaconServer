@@ -1,8 +1,6 @@
-// const fs = require('fs');
 const path = require('path');
-// const uniqid = require('uniqid');
+const uniqid = require('uniqid');
 const bcrypt = require('bcryptjs');
-// const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const Sequelize = require('sequelize');
 const moment = require('moment-timezone');
@@ -339,6 +337,34 @@ const mobileLogout = async (req, res) => {
     }
   })(req, res);
 };
+const sendChangePasswordSms = (req, res) => {
+  validationHelper.bodyValidator(req, res, ['phoneNumber'], async () => {
+    try {
+      const user = await Users.findOne({
+        where: {
+          phoneNumber: {
+            [op.eq]: req.body.phoneNumber,
+          },
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({
+          message: 'user not found',
+        });
+      } else {
+        otpHelper.storeForgetPasswordCode(user.id);
+        res.status(200).json({
+          message: 'you can change password on website with link in sms',
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        message: 'Internal server error',
+      });
+    }
+  });
+};
 
 // USER VERIFICATION WITH EMAIL
 const getVerifyWithConfirmationTokenPage = async (req, res) => {
@@ -596,6 +622,7 @@ module.exports = {
   mobileSignup,
   mobileLogin,
   mobileLogout,
+  sendChangePasswordSms,
 
   getVerifyWithConfirmationTokenPage, // TEMPORARILY USED
   sendVerificationEmail,
