@@ -1,3 +1,4 @@
+const npmRun = require('npm-run');
 const express = require('express');
 
 const authController = require('../controllers/authController');
@@ -36,7 +37,6 @@ router.post('/web/request/:requestId/review', requestController.createRequestRev
 router.post('/mobile/signup', authController.mobileSignup);
 router.post('/mobile/login', authController.mobileLogin);
 router.post('/mobile/logout', authController.mobileLogout);
-router.post('/mobile/changePassword', authController.sendChangePasswordSms);
 
 router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 
@@ -51,9 +51,29 @@ router.patch('/web/changePassword', authController.changePasswordwithChangePassw
 // API ROUTING FOR USER VERIFICATION WITH OTP
 router.post('/mobile/user/verification', authController.sendVerificationOTP);
 router.patch('/mobile/user/verification', authController.verifyUserWithOTP);
+router.post('/mobile/changePassword', authController.sendChangePasswordSms);
+router.patch('/mobile/changePassword', authController.changePasswordwithChangePasswordCode);
 
 // GET IMAGE FILE
 router.get('/web/operator/image/:imageName', imageController.getOperatorImage);
+
+// ROLLBACK DATABASE
+router.get('/rollback', async (req, res) => {
+  console.log('RUNNING ROLLBACK DATABASE');
+  try {
+    await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all');
+    await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:migrate');
+    await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:seed:all');
+
+    res.send({
+      message: 'rollback database successfully',
+    });
+    console.log('ROLLBACK DATABASE SUCCESSFULLY');
+  } catch (err) {
+    console.log('ROLLBACK FAILED', err);
+    res.send('rollback database failed');
+  }
+});
 
 module.exports = {
   Router: router,

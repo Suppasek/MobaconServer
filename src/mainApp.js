@@ -4,6 +4,7 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 const bodyParser = require('body-parser');
+const timeout = require('connect-timeout');
 
 const chatSocket = require('./chatApp');
 const config = require('./config/APIConfig');
@@ -13,7 +14,8 @@ const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
-  .use('/mobacon/api/', router);
+  .use('/mobacon/api/', router)
+  .use(timeout(12000000));
 
 // CREATE SERVER WITH HTTP
 const httpServer = http.createServer(app).listen(config.httpPort, () => {
