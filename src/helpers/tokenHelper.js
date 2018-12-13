@@ -1,6 +1,7 @@
-const moment = require('moment-timezone');
-const jwt = require('jsonwebtoken');
 const uniqid = require('uniqid');
+const jwt = require('jsonwebtoken');
+const Sequelize = require('sequelize');
+const moment = require('moment-timezone');
 
 const config = require('../config/APIConfig');
 const emailHelper = require('../helpers/emailHelper');
@@ -11,6 +12,8 @@ const {
   ConfirmationTokens,
   ForgetPasswordTokens,
 } = require('../models');
+
+const op = Sequelize.Op;
 
 const getOperatorToken = async (user, time = 12) => {
   const expired = Math.floor(moment().tz(config.timezone).add(time, 'hours'));
@@ -41,7 +44,7 @@ const getUserToken = async (user, time = 12) => {
   return token;
 };
 const storeConfirmationToken = async (email, userId, createdBy, time = 12) => {
-  const token = await uniqid(await uniqid.time());
+  const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
   await ConfirmationTokens.create({
     userId,
     token,
@@ -51,7 +54,19 @@ const storeConfirmationToken = async (email, userId, createdBy, time = 12) => {
   emailHelper.sendVerificationMail(email, token);
 };
 const storeConfirmationTokenByOperator = async (email, userId, createdBy, time = 12) => {
-  const token = await uniqid(await uniqid.time());
+  const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
+  await ConfirmationTokens.update({
+    expired: moment().tz(config.timezone),
+  }, {
+    where: {
+      expired: {
+        [op.gt]: moment().tz(config.timezone),
+      },
+      userId: {
+        [op.eq]: userId,
+      },
+    },
+  });
   await ConfirmationTokens.create({
     userId,
     token,
@@ -62,8 +77,21 @@ const storeConfirmationTokenByOperator = async (email, userId, createdBy, time =
 };
 const storeForgetPasswordToken = async (operator, expiredIn = 12) => {
   try {
+    const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
+    await ForgetPasswordTokens.update({
+      expired: moment().tz(config.timezone),
+    }, {
+      where: {
+        createdBy: {
+          [op.eq]: operator.id,
+        },
+        expired: {
+          [op.gt]: moment().tz(config.timezone),
+        },
+      },
+    });
     const forgetPasswordToken = await ForgetPasswordTokens.create({
-      token: await uniqid(await uniqid.time()),
+      token,
       expired: moment().tz(config.timezone).add(expiredIn, 'hours'),
       createdBy: operator.id,
     });

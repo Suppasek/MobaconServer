@@ -1,8 +1,5 @@
-// const fs = require('fs');
 const path = require('path');
-// const uniqid = require('uniqid');
 const bcrypt = require('bcryptjs');
-// const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const Sequelize = require('sequelize');
 const moment = require('moment-timezone');
@@ -23,6 +20,8 @@ const {
   Users,
   Plans,
   ConfirmationTokens,
+  ForgetPasswordTokens,
+  ForgetPasswordCodes,
 } = require('../models');
 
 // METHODS
@@ -373,53 +372,51 @@ const sendVerificationEmail = async (req, res) => {
   });
 };
 const verifyWithConfirmationToken = (req, res) => {
-  validationHelper.bodyValidator(req, res, ['password'], () => {
-    validationHelper.queryValidator(req, res, ['confirmation_token'], async () => {
-      try {
-        const confirmationToken = await ConfirmationTokens.findOne({
-          where: {
-            token: {
-              [op.eq]: req.query.confirmation_token,
-            },
+  validationHelper.bodyValidator(req, res, ['newPassword', 'confirmToken'], async () => {
+    try {
+      const confirmationToken = await ConfirmationTokens.findOne({
+        where: {
+          token: {
+            [op.eq]: req.body.confirmToken,
           },
-        });
+        },
+      });
 
-        if (!confirmationToken) {
-          res.status(400).json({
-            message: 'Token is invalid',
-          });
-        } else if (confirmationToken.expired > moment().tz(config.timezone)) {
-          bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then(async (hashed) => {
-            const result = await Operators.update({
-              password: hashed,
-              verified: true,
-            }, {
-              where: {
-                id: {
-                  [op.eq]: confirmationToken.createdBy,
-                },
+      if (!confirmationToken) {
+        res.status(400).json({
+          message: 'Token is invalid',
+        });
+      } else if (confirmationToken.expired > moment().tz(config.timezone)) {
+        bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10)).then(async (hashed) => {
+          const result = await Operators.update({
+            password: hashed,
+            verified: true,
+          }, {
+            where: {
+              id: {
+                [op.eq]: confirmationToken.userId,
               },
+            },
+          });
+          if (!result) {
+            res.status(500).json({ message: 'Internal server error' });
+          } else {
+            confirmationToken.update({
+              expired: moment().tz(config.timezone),
             });
-            if (!result) {
-              res.status(500).json({ message: 'Internal server error' });
-            } else {
-              confirmationToken.update({
-                expired: moment().tz(config.timezone),
-              });
-              res.status(200).json({
-                message: 'Verify account successfully',
-              });
-            }
-          });
-        } else {
-          res.status(400).json({
-            message: 'Token has expired',
-          });
-        }
-      } catch (err) {
-        res.status(500).json({ message: 'Internal server error' });
+            res.status(200).json({
+              message: 'Verify account successfully',
+            });
+          }
+        });
+      } else {
+        res.status(400).json({
+          message: 'Token has expired',
+        });
       }
-    });
+    } catch (err) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
   });
 };
 const sendChangePasswordEmail = async (req, res) => {
@@ -458,53 +455,50 @@ const sendChangePasswordEmail = async (req, res) => {
   });
 };
 const changePasswordwithChangePasswordToken = async (req, res) => {
-  validationHelper.bodyValidator(req, res, ['password'], () => {
-    validationHelper.queryValidator(req, res, ['change_password_token'], async () => {
-      try {
-        const confirmationToken = await ConfirmationTokens.findOne({
-          where: {
-            token: {
-              [op.eq]: req.query.change_password_token,
-            },
+  validationHelper.bodyValidator(req, res, ['newPassword', 'changePasswordToken'], async () => {
+    try {
+      const forgetPasswordToken = await ForgetPasswordTokens.findOne({
+        where: {
+          token: {
+            [op.eq]: req.body.changePasswordToken,
           },
-        });
+        },
+      });
 
-        if (!confirmationToken) {
-          res.status(400).json({
-            message: 'Token is invalid',
-          });
-        } else if (confirmationToken.expired > moment().tz(config.timezone)) {
-          bcrypt.hash(req.body.password, bcrypt.genSaltSync(10)).then(async (hashed) => {
-            const result = await Operators.update({
-              password: hashed,
-              verified: true,
-            }, {
-              where: {
-                id: {
-                  [op.eq]: confirmationToken.createdBy,
-                },
+      if (!forgetPasswordToken) {
+        res.status(400).json({
+          message: 'Token is invalid',
+        });
+      } else if (forgetPasswordToken.expired > moment().tz(config.timezone)) {
+        bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10)).then(async (hashed) => {
+          const result = await Operators.update({
+            password: hashed,
+          }, {
+            where: {
+              id: {
+                [op.eq]: forgetPasswordToken.createdBy,
               },
+            },
+          });
+          if (!result) {
+            res.status(500).json({ message: 'Internal server error' });
+          } else {
+            forgetPasswordToken.update({
+              expired: moment().tz(config.timezone),
             });
-            if (!result) {
-              res.status(500).json({ message: 'Internal server error' });
-            } else {
-              confirmationToken.update({
-                expired: moment().tz(config.timezone),
-              });
-              res.status(200).json({
-                message: 'Change password successfully',
-              });
-            }
-          });
-        } else {
-          res.status(400).json({
-            message: 'Token has expired',
-          });
-        }
-      } catch (err) {
-        res.status(500).json({ message: 'Internal server error' });
+            res.status(200).json({
+              message: 'Change password successfully',
+            });
+          }
+        });
+      } else {
+        res.status(400).json({
+          message: 'Token has expired',
+        });
       }
-    });
+    } catch (err) {
+      res.status(500).json({ message: 'Internal server error' });
+    }
   });
 };
 
@@ -584,6 +578,79 @@ const verifyUserWithOTP = async (req, res) => {
     }
   });
 };
+const sendChangePasswordSms = (req, res) => {
+  validationHelper.bodyValidator(req, res, ['phoneNumber'], async () => {
+    try {
+      const user = await Users.findOne({
+        where: {
+          phoneNumber: {
+            [op.eq]: req.body.phoneNumber,
+          },
+        },
+      });
+
+      if (!user) {
+        res.status(404).json({
+          message: 'user not found',
+        });
+      } else {
+        otpHelper.storeForgetPasswordCode(user.id);
+        res.status(200).json({
+          message: 'you can change password on website with link in sms',
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        message: 'Internal server error',
+      });
+    }
+  });
+};
+const changePasswordwithChangePasswordCode = (req, res) => {
+  validationHelper.bodyValidator(req, res, ['changePasswordCode', 'newPassword'], async () => {
+    try {
+      const foundCode = await ForgetPasswordCodes.findOne({
+        where: {
+          code: {
+            [op.eq]: req.body.changePasswordCode,
+          },
+        },
+      });
+
+      if (!foundCode) {
+        res.status(403).json({
+          message: 'invalid changePasswordCode',
+        });
+      } else if (foundCode.expired < moment().tz(config.timezone)) {
+        res.status(403).json({
+          message: 'changePasswordCode has expired',
+        });
+      } else {
+        const newPassword = await bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10));
+
+        await Users.update({
+          password: newPassword,
+        }, {
+          where: {
+            id: {
+              [op.eq]: foundCode.createdBy,
+            },
+          },
+        });
+        await foundCode.update({
+          expired: moment().tz(config.timezone),
+        });
+        res.status(200).json({
+          message: 'change password successfully',
+        });
+      }
+    } catch (err) {
+      res.status(500).json({
+        message: 'Internal server error',
+      });
+    }
+  });
+};
 
 module.exports = {
   webLogin,
@@ -605,4 +672,6 @@ module.exports = {
 
   sendVerificationOTP,
   verifyUserWithOTP,
+  sendChangePasswordSms,
+  changePasswordwithChangePasswordCode,
 };

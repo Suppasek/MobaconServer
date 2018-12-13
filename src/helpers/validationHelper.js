@@ -103,6 +103,16 @@ const operatorValidator = (req, res, operator, newToken, next) => {
     });
   }
 };
+const userValidator = (req, res, user, newToken, next) => {
+  if (user.role.id === constant.ROLE.USER) {
+    next();
+  } else {
+    res.status(403).json({
+      token: newToken,
+      message: 'this function for administrators and operators only',
+    });
+  }
+};
 const fileExtensionValidator = (extensions, mimetype) => extensions.indexOf(mimetype) !== -1;
 
 module.exports = {
@@ -111,5 +121,6 @@ module.exports = {
   operatorCreationValidator,
   administratorValidator,
   operatorValidator,
+  userValidator,
   fileExtensionValidator,
 };
