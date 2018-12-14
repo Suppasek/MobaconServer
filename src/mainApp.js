@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const timeout = require('connect-timeout');
 
 const chatSocket = require('./chatApp');
+const analyticSocket = require('./socketClientApp');
 const config = require('./config/APIConfig');
 const router = require('./routes/router').Router;
 
@@ -31,7 +32,8 @@ const httpsServer = https.createServer({
   console.log(`Start https server at\t ${config.baseUrl}:${config.httpsPort}`);
 });
 
-chatSocket(httpServer);
+// analyticSocket(config.analyticUrl);
+// chatSocket(httpServer);
 
 module.exports = {
   HttpServer: httpServer,

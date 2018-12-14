@@ -1,4 +1,5 @@
 const fs = require('fs');
+const path = require('path');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const Sequelize = require('sequelize');
@@ -9,6 +10,9 @@ const LocalStrategy = require('passport-local').Strategy;
 
 const config = require('../../config/APIConfig');
 const tokenHelper = require('../../helpers/tokenHelper');
+
+const secret = fs.readFileSync(path.join(__dirname, '../../config/secret.key'));
+
 const {
   Roles,
   Operators,
@@ -19,6 +23,7 @@ const {
 } = require('../../models');
 
 const op = Sequelize.Op;
+config.secret = secret;
 
 const getOperatorInfomation = (operator) => ({
   id: operator.id,
@@ -368,30 +373,18 @@ passport.use('mobile-logout', new JwtStrategy({
           token: {
             [op.eq]: token,
           },
-          createdBy: {
-            [op.eq]: jwtPayload.data.id,
-          },
         },
       });
 
       if (!foundToken) {
+        done(null, false, { message: 'Token is invalid' });
+      } else if (foundToken.banned) {
         done(null, false, { message: 'Token has expired' });
-      } else if (foundToken.expired > moment().tz(config.timezone)) {
-        await UserTokens.update({
-          expired: moment().tz(config.timezone),
-        }, {
-          where: {
-            expired: {
-              [op.gt]: moment().tz(config.timezone),
-            },
-            createdBy: {
-              [op.eq]: jwtPayload.data.id,
-            },
-          },
+      } else {
+        await foundToken.update({
+          banned: true,
         });
         done(null, foundToken, { message: 'Logout successfully' });
-      } else {
-        done(null, false, { message: 'Token has expired' });
       }
     } catch (error) {
       done(error, false, { message: 'Internal server error' });
