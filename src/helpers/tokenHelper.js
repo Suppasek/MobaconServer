@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const uniqid = require('uniqid');
 const jwt = require('jsonwebtoken');
 const Sequelize = require('sequelize');
@@ -5,6 +7,8 @@ const moment = require('moment-timezone');
 
 const config = require('../config/APIConfig');
 const emailHelper = require('../helpers/emailHelper');
+
+const secret = fs.readFileSync(path.join(__dirname, '../config/secret.key'));
 
 const {
   OperatorTokens,
@@ -14,6 +18,7 @@ const {
 } = require('../models');
 
 const op = Sequelize.Op;
+config.secret = secret;
 
 const getOperatorToken = async (user, time = 12) => {
   const expired = Math.floor(moment().tz(config.timezone).add(time, 'hours'));

@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const socketio = require('socket.io');
@@ -9,6 +11,9 @@ const apiConfig = require('./config/APIConfig');
 const constant = require('./config/APIConstant');
 const mongoConfig = require('./config/MongoConfig');
 const tokenHelper = require('./helpers/tokenHelper');
+
+const secret = fs.readFileSync(path.join(__dirname, './config/secret.key'));
+
 const {
   Roles,
   Operators,
@@ -22,6 +27,7 @@ const ChatRoomSchema = require('./mongoSchema/chatRoomSchema');
 const ChatMessageSchema = require('./mongoSchema/chatMessageSchema');
 
 const op = sequelize.Op;
+apiConfig.secret = secret;
 
 mongoose.connect(mongoConfig.mongoUri, {
   useNewUrlParser: true,
