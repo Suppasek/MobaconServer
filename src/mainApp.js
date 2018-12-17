@@ -21,4 +21,8 @@ const httpServer = http.createServer(app).listen(config.httpPort, () => {
   console.log(`Start http server at\t ${config.baseUrl}:${config.httpPort}`);
 });
 
-chatSocket(httpServer);
+const io = chatSocket(httpServer);
+
+module.exports = {
+  io,
+};
