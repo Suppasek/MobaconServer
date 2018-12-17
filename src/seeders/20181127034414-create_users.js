@@ -126,6 +126,16 @@ module.exports = {
     verified: true,
     createdAt: Sequelize.fn('NOW'),
     updatedAt: Sequelize.fn('NOW'),
+  }, {
+    id: 13,
+    roleId: 3,
+    planId: 1,
+    fullName: 'Mobacon M. Test',
+    phoneNumber: '0800000013',
+    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    verified: true,
+    createdAt: Sequelize.fn('NOW'),
+    updatedAt: Sequelize.fn('NOW'),
   }]),
   down: (queryInterface) => queryInterface.bulkDelete('Users', null, {}),
 };

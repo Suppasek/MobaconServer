@@ -3,6 +3,7 @@ const express = require('express');
 
 const authController = require('../controllers/authController');
 const planController = require('../controllers/planController');
+const userController = require('../controllers/userController');
 const imageController = require('../controllers/imageController');
 const requestController = require('../controllers/requestController');
 const operatorController = require('../controllers/operatorController');
@@ -37,7 +38,9 @@ router.post('/web/request/:requestId/review', requestController.createRequestRev
 router.post('/mobile/signup', authController.mobileSignup);
 router.post('/mobile/login', authController.mobileLogin);
 router.post('/mobile/logout', authController.mobileLogout);
+router.patch('/mobile/user/password', authController.mobileChangePassword);
 
+router.patch('/mobile/user', userController.editUser);
 router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 
 // API ROUTING FOR USER VERIFICATION WITH EMAIL

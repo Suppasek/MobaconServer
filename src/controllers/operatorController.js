@@ -1,7 +1,5 @@
 const Sequelize = require('sequelize');
 
-// const sequelize = new Sequelize('masa_db', 'root', 'root');
-
 const {
   Roles,
   Operators,
