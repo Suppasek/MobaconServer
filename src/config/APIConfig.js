@@ -4,7 +4,6 @@ module.exports = {
   httpsPort: 8443,
   socketPort: 8888,
   analyticUrl: 'http://localhost:3000',
-  timezone: 'Asia/Bangkok',
   fileUpload: {
     mimetype: ['image/png', 'image/jpeg'],
   },

@@ -20,8 +20,7 @@ Configure database connection at `src/config/config.json`
 	"password": "[password]",
 	"database": "[database_name]",
 	"host": "127.0.0.1",
-	"dialect": "mysql",
-	"timezone": "+07:00"
+	"dialect": "mysql"
 }
 ```
 

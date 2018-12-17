@@ -3,7 +3,7 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const Sequelize = require('sequelize');
-const moment = require('moment-timezone');
+const moment = require('moment');
 const { ExtractJwt } = require('passport-jwt');
 const JwtStrategy = require('passport-jwt').Strategy;
 const LocalStrategy = require('passport-local').Strategy;
@@ -156,10 +156,10 @@ passport.use('web-jwt', new JwtStrategy({
         }],
       });
 
-      if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+      if (moment.utc(jwtPayload.exp) > moment.utc()) {
         done(null, operator);
       } else {
-        const isOutOfTime = moment.duration(moment().tz(config.timezone).diff(moment(jwtPayload.exp).tz(config.timezone))).asHours() > 120;
+        const isOutOfTime = moment.utc().duration(moment.utc().diff(moment.utc(jwtPayload.exp))).asHours() > 120;
 
         if (isOutOfTime) {
           done(null, false, { message: 'token has expired' });
@@ -193,7 +193,7 @@ passport.use('web-logout', new JwtStrategy({
   session: false,
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
-  if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+  if (moment.utc(jwtPayload.exp) > moment.utc()) {
     try {
       const foundToken = await OperatorTokens.findOne({
         where: {
@@ -329,10 +329,10 @@ passport.use('mobile-jwt', new JwtStrategy({
         }],
       });
 
-      if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+      if (moment.utc(jwtPayload.exp) > moment.utc()) {
         done(null, user);
       } else {
-        const isOutOfTime = moment.duration(moment().tz(config.timezone).diff(moment(jwtPayload.exp).tz(config.timezone))).asHours() > 120;
+        const isOutOfTime = moment.utc().duration(moment.utc().diff(moment.utc(jwtPayload.exp))).asHours() > 120;
 
         if (isOutOfTime) {
           done(null, false, { message: 'token has expired' });
@@ -366,7 +366,7 @@ passport.use('mobile-logout', new JwtStrategy({
   session: false,
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
-  if (moment(jwtPayload.exp).tz(config.timezone) > moment().tz(config.timezone)) {
+  if (moment.utc(jwtPayload.exp) > moment.utc()) {
     try {
       const foundToken = await UserTokens.findOne({
         where: {

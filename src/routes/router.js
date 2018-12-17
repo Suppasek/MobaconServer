@@ -38,9 +38,13 @@ router.post('/web/request/:requestId/review', requestController.createRequestRev
 router.post('/mobile/signup', authController.mobileSignup);
 router.post('/mobile/login', authController.mobileLogin);
 router.post('/mobile/logout', authController.mobileLogout);
+router.patch('/mobile/user', userController.editUser);
 router.patch('/mobile/user/password', authController.mobileChangePassword);
 
-router.patch('/mobile/user', userController.editUser);
+router.get('/mobile/request/review', requestController.getReviewByRequestId);
+router.patch('/mobile/request/review/:requestId/like', requestController.likeReviewByRequestId);
+router.patch('/mobile/request/review/:requestId/dislike', requestController.dislikeReviewByRequestId);
+
 router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 
 // API ROUTING FOR USER VERIFICATION WITH EMAIL
