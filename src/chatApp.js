@@ -34,7 +34,7 @@ mongoose.connect(mongoConfig.mongoUri, {
 });
 
 // ClASSES
-class JwtError extends Error {
+class CustomError extends Error {
   constructor(name, message) {
     super();
     this.name = name;
@@ -86,7 +86,7 @@ const authorization = async (socket, next) => {
   jwt.verify(socket.handshake.query.token, apiConfig.secret, { ignoreExpiration: true }, async (error, decoded) => {
     try {
       if (error) {
-        throw new JwtError('JsonWebTokenError', 'token is invalid');
+        throw new CustomError('JsonWebTokenError', 'token is invalid');
       } else if (decoded.data.role.id === constant.ROLE.USER) {
         const user = await Users.findOne({
           attributes: ['id', 'fullName', 'phoneNumber', 'imagePath'],
@@ -115,9 +115,9 @@ const authorization = async (socket, next) => {
         });
 
         if (!foundToken) {
-          throw new JwtError('JsonWebTokenError', 'token is invalid');
+          throw new CustomError('JsonWebTokenError', 'token is invalid');
         } else if (foundToken.banned) {
-          throw new JwtError('JsonWebTokenError', 'token has expired');
+          throw new CustomError('JsonWebTokenError', 'token has expired');
         } else if (moment(decoded.exp).tz(apiConfig.timezone) < moment().tz(apiConfig.timezone)) {
           const newToken = await tokenHelper.getUserToken(user);
           foundToken.update({
@@ -160,9 +160,9 @@ const authorization = async (socket, next) => {
         });
 
         if (!foundToken) {
-          throw new JwtError('JsonWebTokenError', 'token is invalid');
+          throw new CustomError('JsonWebTokenError', 'token is invalid');
         } else if (foundToken.banned) {
-          throw new JwtError('JsonWebTokenError', 'token has expired');
+          throw new CustomError('JsonWebTokenError', 'token has expired');
         } else if (moment(decoded.exp).tz(apiConfig.timezone) < moment().tz(apiConfig.timezone)) {
           const newToken = await tokenHelper.getOperatorToken(operator);
           foundToken.update({
@@ -191,7 +191,23 @@ const authorization = async (socket, next) => {
     }
   });
 };
-const payloadValidator = (payload, keys, next) => {
+const checkRole = async (socketId, roleId, socketCallback, next) => {
+  try {
+    const foundSocketId = await SocketSchema.find({
+      socketId,
+    });
+
+    if (!foundSocketId) throw new CustomError('ChatError', 'socket not found');
+    else if (foundSocketId.roleId !== roleId) throw new CustomError('ChatError', 'invalid roleId');
+    else next();
+  } catch (err) {
+    socketCallback({
+      ok: false,
+      error: err,
+    });
+  }
+};
+const payloadValidator = (socketCallback, payload, keys, next) => {
   const required = [];
   forEach(keys, (key) => {
     if (payload[key] === undefined) {
@@ -201,6 +217,11 @@ const payloadValidator = (payload, keys, next) => {
 
   if (required.length === 0) {
     next();
+  } else {
+    socketCallback({
+      ok: false,
+      message: `${required}is required`,
+    });
   }
 };
 const sendChat = (io, targetSocketIds, senderId, message) => {
@@ -307,38 +328,27 @@ const checkAndChat = async (io, socketId, payload, next) => {
     });
   }
 };
-const readChat = async (socketId, targetId, next) => {
+const sendChatFromMobile = async (io, socket, payload, socketCallback) => {
   try {
-    const socketOwner = await SocketSchema.findOne({
-      socketId,
+    const foundSocketId = await SocketSchema.findOne({
+      socketId: socket.id,
     });
 
-    if (socketOwner.roleId === constant.ROLE.USER) {
-
-    } else {
+    if (foundSocketId.roleId !== constant.ROLE.USER) throw new Error('ChatError', 'forbidden for chat');
+    else {
+      // store chat
+      // send chat to other selfs
 
     }
-    const chatRoom = await ChatRoomSchema.findOne({
 
+    socketCallback({
+      ok: true,
+      data: foundSocketId.roleId,
     });
   } catch (err) {
-    next({
+    socketCallback({
       ok: false,
-      message: 'forbidden for chat',
-    });
-  }
-};
-const getChatListAndLastMessage = async (socketId, next) => {
-  try {
-    const socketOwner = await SocketSchema.findOne({
-      socketId,
-    });
-
-    next(socketOwner);
-  } catch (err) {
-    next({
-      ok: false,
-      message: 'Internal server error',
+      error: err,
     });
   }
 };
@@ -352,10 +362,27 @@ module.exports = (server) => {
     socket.emit('chat', { message: socket.id });
     await authorization(socket, async () => {
       socket
-        // .on('chat-list', async (payload, next) => getChatListAndLastMessage(socket.id, next))
-        .on('chat', (payload, next) => payloadValidator(payload, ['message', 'targetId', 'requestId'], () => checkAndChat(io, socket.id, payload, next)))
-        // .on('read-chat', (payload, next) => payloadValidator(payload, ['targetId'], readChat(socket.id, payload.targetId, next)))
+        .on('mobile-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['text'], () => {
+          sendChatFromMobile(io, socket, payload, socketCallback);
+        }))
         .on('disconnect', () => removeSocketId(socket.id));
     });
   });
+
+  return io;
 };
+
+// module.exports = (server) => {
+//   clear();
+//   clearSockets();
+//   const io = socketio(server);
+
+//   io.on('connection', async (socket) => {
+//     socket.emit('chat', { message: socket.id });
+//     await authorization(socket, async () => {
+//       socket
+//         .on('chat', (payload, next) => payloadValidator(payload, ['message', 'targetId', 'requestId'], () => checkAndChat(io, socket.id, payload, next)))
+//         .on('disconnect', () => removeSocketId(socket.id));
+//     });
+//   });
+// };

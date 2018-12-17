@@ -5,7 +5,7 @@ const multer = require('multer');
 const apiConfig = require('../../config/APIConfig');
 const validationHelper = require('../../helpers/validationHelper');
 
-const upload = multer({
+const webUpload = multer({
   fileFilter: (req, file, next) => {
     if (validationHelper.fileExtensionValidator(apiConfig.fileUpload.mimetype, file.mimetype)) {
       next(null, `${Date.now()}.${file.mimetype.split('/')[1]}`);
@@ -23,9 +23,27 @@ const upload = multer({
     },
   }),
 }).single('image');
+const mobileUpload = multer({
+  fileFilter: (req, file, next) => {
+    if (validationHelper.fileExtensionValidator(apiConfig.fileUpload.mimetype, file.mimetype)) {
+      next(null, `${Date.now()}.${file.mimetype.split('/')[1]}`);
+    } else {
+      next({}, false);
+    }
+  },
+  storage: multer.diskStorage({
+    destination: (req, res, next) => {
+      next(null, path.join(__dirname, '../../../assets/images/users'));
+    },
+    filename: (req, file, next) => {
+      const extension = file.mimetype.split('/')[1];
+      next(null, `${Date.now()}.${extension}`);
+    },
+  }),
+}).single('image');
 
-const validateUploadImage = (req, res, next) => {
-  upload(req, res, (error) => {
+const validateWebUploadImage = (req, res, next) => {
+  webUpload(req, res, (error) => {
     if (error) {
       res.status(400).json({
         message: 'File extension is invalid',
@@ -35,7 +53,7 @@ const validateUploadImage = (req, res, next) => {
     }
   });
 };
-const removeOperatorImageByPath = (imagePath) => {
+const removeImageByPath = (imagePath) => {
   if (fs.existsSync(imagePath)) {
     fs.unlink(imagePath, () => {});
   }
@@ -47,8 +65,30 @@ const removeOperatorImageByName = (fileName) => {
   }
 };
 
+const validateMobileUploadImage = (req, res, next) => {
+  mobileUpload(req, res, (error) => {
+    if (error) {
+      res.status(400).json({
+        message: 'File extension is invalid',
+      });
+    } else {
+      next(req.file);
+    }
+  });
+};
+const removeUserImageByName = (fileName) => {
+  const imagePath = path.join(__dirname, `../../../assets/images/users/${fileName}`);
+  if (fs.existsSync(imagePath)) {
+    fs.unlink(imagePath, () => {});
+  }
+};
+
 module.exports = {
-  validateUploadImage,
-  removeOperatorImageByPath,
+  validateWebUploadImage,
   removeOperatorImageByName,
+
+  validateMobileUploadImage,
+  removeUserImageByName,
+
+  removeImageByPath,
 };

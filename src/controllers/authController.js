@@ -9,9 +9,9 @@ const constant = require('../config/APIConstant');
 const otpHelper = require('../helpers/otpHelper');
 const tokenHelper = require('../helpers/tokenHelper');
 const emailHelper = require('../helpers/emailHelper');
+const multerService = require('./services/multerService');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
-const multerService = require('./services/multerService');
 
 const op = Sequelize.Op;
 const {
@@ -110,7 +110,7 @@ const changePassword = async (req, res) => {
   });
 };
 const createOperator = async (req, res) => {
-  multerService.validateUploadImage(req, res, async () => {
+  multerService.validateWebUploadImage(req, res, async () => {
     passportService.webJwtAuthorize(req, res, (operator, newToken) => {
       validationHelper.bodyValidator(req, res, ['fullName', 'email', 'roleId'], async () => {
         validationHelper.operatorCreationValidator(req, res, operator, newToken, async () => {
@@ -132,7 +132,7 @@ const createOperator = async (req, res) => {
             });
           } catch (err) {
             if (req.file) {
-              multerService.removeOperatorImageByPath(req.file.path);
+              multerService.removeImageByPath(req.file.path);
             }
 
             if (err.errors) {
@@ -153,7 +153,7 @@ const createOperator = async (req, res) => {
   });
 };
 const editOperator = async (req, res) => {
-  multerService.validateUploadImage(req, res, async () => {
+  multerService.validateWebUploadImage(req, res, async () => {
     passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
       try {
         const imagePathTemp = operator.imagePath;
@@ -192,7 +192,7 @@ const editOperator = async (req, res) => {
         }
       } catch (err) {
         if (req.file) {
-          multerService.removeOperatorImageByPath(req.file.path);
+          multerService.removeImageByPath(req.file.path);
         }
 
         if (err.errors) {
@@ -261,13 +261,14 @@ const activateOperator = async (req, res) => {
 
 // MOBILE AUTHENTICATION
 const mobileSignup = async (req, res) => {
-  validationHelper.bodyValidator(req, res, ['phoneNumber', 'password'], async () => {
+  validationHelper.bodyValidator(req, res, ['fullName', 'phoneNumber', 'password'], async () => {
     try {
       const password = await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10));
       const createdUser = await Users.create({
         roleId: constant.ROLE.USER,
         planId: constant.PLAN.BASIC,
         phoneNumber: req.body.phoneNumber,
+        fullName: req.body.fullName,
         password,
       });
       const user = await Users.findOne({
@@ -337,6 +338,52 @@ const mobileLogout = async (req, res) => {
       res.status(400).json(info);
     }
   })(req, res);
+};
+const mobileChangePassword = async (req, res) => {
+  passportService.mobileJwtAuthorize(req, res, (user, newToken) => {
+    validationHelper.bodyValidator(req, res, ['oldPassword', 'newPassword'], async () => {
+      try {
+        const foundUser = await Users.findOne({
+          where: {
+            id: {
+              [op.eq]: user.id,
+            },
+          },
+        });
+
+        const validatePassword = await bcrypt.compare(req.body.oldPassword, foundUser.password);
+
+        if (!validatePassword) {
+          res.status(403).json({
+            token: newToken,
+            message: 'old password is invalid',
+          });
+        } else {
+          const newPassword = await bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10));
+          await foundUser.update({
+            password: newPassword,
+          });
+
+          res.status(200).json({
+            token: newToken,
+            message: 'change password successfully',
+          });
+        }
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
 };
 
 // USER VERIFICATION WITH EMAIL
@@ -663,6 +710,7 @@ module.exports = {
   mobileSignup,
   mobileLogin,
   mobileLogout,
+  mobileChangePassword,
 
   getVerifyWithConfirmationTokenPage, // TEMPORARILY USED
   sendVerificationEmail,
