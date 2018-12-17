@@ -3,9 +3,8 @@ const uniqid = require('uniqid');
 const bcrypt = require('bcryptjs');
 const sequelize = require('sequelize');
 const randomString = require('random-string');
-const moment = require('moment-timezone');
+const moment = require('moment');
 
-const config = require('../config/APIConfig');
 const twilioConfig = require('../config/TwilioConfig');
 
 const {
@@ -64,21 +63,21 @@ const storeConfirmationCode = async (createdBy, time = 1) => {
   const code = await bcrypt.hash(rawCode, bcrypt.genSaltSync(10));
 
   await ConfirmationCodes.update({
-    expired: await moment().tz(config.timezone),
+    expired: await moment.utc(),
   }, {
     where: {
       createdBy: {
         [op.eq]: createdBy,
       },
       expired: {
-        [op.gt]: moment().tz(config.timezone),
+        [op.gt]: moment.utc(),
       },
     },
   });
 
   await ConfirmationCodes.create({
     code,
-    expired: moment().tz(config.timezone).add(time, 'minutes'),
+    expired: moment.utc().add(time, 'minutes'),
     createdBy,
   });
 };
@@ -94,20 +93,20 @@ const storeForgetPasswordCode = async (createdBy, time = 1) => {
   });
 
   ForgetPasswordCodes.update({
-    expired: moment().tz(config.timezone),
+    expired: moment.utc(),
   }, {
     where: {
       createdBy: {
         [op.eq]: createdBy,
       },
       expired: {
-        [op.gt]: moment().tz(config.timezone),
+        [op.gt]: moment.utc(),
       },
     },
   }).then(() => {
     ForgetPasswordCodes.create({
       code: token,
-      expired: moment().tz(config.timezone).add(time, 'hours'),
+      expired: moment.utc().add(time, 'hours'),
       createdBy,
     });
   });
@@ -121,7 +120,7 @@ const verifyOtp = async (otp, createdBy) => {
         [op.eq]: createdBy,
       },
       expired: {
-        [op.gt]: moment().tz(config.timezone),
+        [op.gt]: moment.utc(),
       },
     },
   });
@@ -150,7 +149,7 @@ const verifyOtp = async (otp, createdBy) => {
         },
       });
       await foundCode.update({
-        expired: moment().tz(config.timezone),
+        expired: moment.utc(),
       });
       return {
         ok: true,

@@ -524,6 +524,164 @@ const getReviewByUserId = (req, res) => {
     });
   });
 };
+const getReviewByRequestId = (req, res) => {
+  passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
+    validationHelper.userValidator(req, res, user, newToken, async () => {
+      try {
+        const lastRequest = await Requests.findOne({
+          attributes: ['id', 'billRef'],
+          where: {
+            userId: {
+              [op.eq]: user.id,
+            },
+
+          },
+          include: [{
+            model: Carriers,
+            as: 'carrier',
+            attributes: ['id', 'name'],
+          }, {
+            model: Offers,
+            as: 'offer',
+            attributes: ['review', 'suggestion', 'liked', 'createdAt'],
+          }],
+          order: [
+            ['id', 'DESC'],
+          ],
+        });
+
+        const bill = await billSchema.findById(lastRequest.billRef).select('-__v').select('-carrier');
+        delete lastRequest.dataValues.billRef;
+        lastRequest.dataValues.bill = bill;
+
+        res.status(200).json({
+          token: newToken,
+          data: lastRequest,
+        });
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
+};
+const likeReviewByRequestId = (req, res) => {
+  passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
+    validationHelper.userValidator(req, res, user, newToken, async () => {
+      try {
+        const foundRequest = await Requests.findOne({
+          where: {
+            id: {
+              [op.eq]: req.params.requestId,
+            },
+          },
+        });
+
+        if (!foundRequest) {
+          res.status(404).json({
+            token: newToken,
+            message: 'request not found',
+          });
+        } else if (foundRequest.userId !== user.id) {
+          res.status(403).json({
+            token: newToken,
+            message: 'forbidden for request, request is not your',
+          });
+        } else {
+          await Offers.update({
+            liked: true,
+          }, {
+            where: {
+              id: {
+                [op.eq]: foundRequest.offerId,
+              },
+            },
+          });
+
+          res.status(200).json({
+            token: newToken,
+            message: 'like review successfully',
+          });
+        }
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
+};
+const dislikeReviewByRequestId = (req, res) => {
+  passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
+    validationHelper.userValidator(req, res, user, newToken, async () => {
+      try {
+        const foundRequest = await Requests.findOne({
+          where: {
+            id: {
+              [op.eq]: req.params.requestId,
+            },
+          },
+        });
+
+        if (!foundRequest) {
+          res.status(404).json({
+            token: newToken,
+            message: 'request not found',
+          });
+        } else if (foundRequest.userId !== user.id) {
+          res.status(403).json({
+            token: newToken,
+            message: 'forbidden for request, request is not your',
+          });
+        } else {
+          await Offers.update({
+            liked: false,
+          }, {
+            where: {
+              id: {
+                [op.eq]: foundRequest.offerId,
+              },
+            },
+          });
+
+          res.status(200).json({
+            token: newToken,
+            message: 'dislike review successfully',
+          });
+        }
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
+};
 
 module.exports = {
   getRequests,
@@ -534,4 +692,7 @@ module.exports = {
   createRequestReviewById,
   getBillByUserId,
   getReviewByUserId,
+  getReviewByRequestId,
+  likeReviewByRequestId,
+  dislikeReviewByRequestId,
 };

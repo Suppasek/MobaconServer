@@ -1,10 +1,10 @@
 const fs = require('fs');
 const path = require('path');
+const moment = require('moment');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const socketio = require('socket.io');
 const sequelize = require('sequelize');
-const moment = require('moment-timezone');
 const { forEach } = require('p-iteration');
 
 const apiConfig = require('./config/APIConfig');
@@ -118,7 +118,7 @@ const authorization = async (socket, next) => {
           throw new CustomError('JsonWebTokenError', 'token is invalid');
         } else if (foundToken.banned) {
           throw new CustomError('JsonWebTokenError', 'token has expired');
-        } else if (moment(decoded.exp).tz(apiConfig.timezone) < moment().tz(apiConfig.timezone)) {
+        } else if (moment.utc(decoded.exp) < moment.utc()) {
           const newToken = await tokenHelper.getUserToken(user);
           foundToken.update({
             banned: true,
@@ -163,7 +163,7 @@ const authorization = async (socket, next) => {
           throw new CustomError('JsonWebTokenError', 'token is invalid');
         } else if (foundToken.banned) {
           throw new CustomError('JsonWebTokenError', 'token has expired');
-        } else if (moment(decoded.exp).tz(apiConfig.timezone) < moment().tz(apiConfig.timezone)) {
+        } else if (moment.utc(decoded.exp) < moment.utc()) {
           const newToken = await tokenHelper.getOperatorToken(operator);
           foundToken.update({
             banned: true,

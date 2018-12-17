@@ -2,9 +2,8 @@ const path = require('path');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const Sequelize = require('sequelize');
-const moment = require('moment-timezone');
+const moment = require('moment');
 
-const config = require('../config/APIConfig');
 const constant = require('../config/APIConstant');
 const otpHelper = require('../helpers/otpHelper');
 const tokenHelper = require('../helpers/tokenHelper');
@@ -433,7 +432,7 @@ const verifyWithConfirmationToken = (req, res) => {
         res.status(400).json({
           message: 'Token is invalid',
         });
-      } else if (confirmationToken.expired > moment().tz(config.timezone)) {
+      } else if (confirmationToken.expired > moment.utc()) {
         bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10)).then(async (hashed) => {
           const result = await Operators.update({
             password: hashed,
@@ -449,7 +448,7 @@ const verifyWithConfirmationToken = (req, res) => {
             res.status(500).json({ message: 'Internal server error' });
           } else {
             confirmationToken.update({
-              expired: moment().tz(config.timezone),
+              expired: moment.utc(),
             });
             res.status(200).json({
               message: 'Verify account successfully',
@@ -516,7 +515,7 @@ const changePasswordwithChangePasswordToken = async (req, res) => {
         res.status(400).json({
           message: 'Token is invalid',
         });
-      } else if (forgetPasswordToken.expired > moment().tz(config.timezone)) {
+      } else if (forgetPasswordToken.expired > moment.utc()) {
         bcrypt.hash(req.body.newPassword, bcrypt.genSaltSync(10)).then(async (hashed) => {
           const result = await Operators.update({
             password: hashed,
@@ -531,7 +530,7 @@ const changePasswordwithChangePasswordToken = async (req, res) => {
             res.status(500).json({ message: 'Internal server error' });
           } else {
             forgetPasswordToken.update({
-              expired: moment().tz(config.timezone),
+              expired: moment.utc(),
             });
             res.status(200).json({
               message: 'Change password successfully',
@@ -668,7 +667,7 @@ const changePasswordwithChangePasswordCode = (req, res) => {
         res.status(403).json({
           message: 'invalid changePasswordCode',
         });
-      } else if (foundCode.expired < moment().tz(config.timezone)) {
+      } else if (foundCode.expired < moment.utc()) {
         res.status(403).json({
           message: 'changePasswordCode has expired',
         });
@@ -685,7 +684,7 @@ const changePasswordwithChangePasswordCode = (req, res) => {
           },
         });
         await foundCode.update({
-          expired: moment().tz(config.timezone),
+          expired: moment.utc(),
         });
         res.status(200).json({
           message: 'change password successfully',

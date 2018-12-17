@@ -3,7 +3,7 @@ const billIds = require('../mock_up/billIds');
 module.exports = {
   up: (queryInterface, Sequelize) => queryInterface.bulkInsert('Requests', [{
     id: 1,
-    userId: 1,
+    userId: 13,
     operatorId: 2,
     carrierId: 1,
     billRef: billIds.bills[0]._id,
@@ -13,7 +13,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 2,
-    userId: 2,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[1]._id,
@@ -23,7 +23,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 3,
-    userId: 3,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[2]._id,
@@ -33,7 +33,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 4,
-    userId: 4,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[3]._id,
@@ -43,7 +43,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 5,
-    userId: 5,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[4]._id,
@@ -53,7 +53,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 6,
-    userId: 6,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[5]._id,
@@ -63,7 +63,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 7,
-    userId: 7,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[6]._id,
@@ -73,7 +73,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 8,
-    userId: 8,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[7]._id,
@@ -83,7 +83,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 9,
-    userId: 9,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[8]._id,
@@ -93,7 +93,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 10,
-    userId: 10,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[9]._id,
@@ -103,7 +103,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 11,
-    userId: 11,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[10]._id,
@@ -113,7 +113,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 12,
-    userId: 1,
+    userId: 13,
     carrierId: 1,
     billRef: billIds.bills[11]._id,
     status: 'Pending',

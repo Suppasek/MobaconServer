@@ -2,9 +2,8 @@ const fs = require('fs');
 const path = require('path');
 const rn = require('random-number');
 const mongoose = require('mongoose');
-const moment = require('moment-timezone');
+const moment = require('moment');
 
-const apiConfig = require('../config/APIConfig');
 const mongoConfig = require('../config/MongoConfig');
 const billSchema = require('../mongoSchema/billSchema');
 
@@ -36,11 +35,11 @@ const data = [];
 
 for (let i = 1; i <= 12; i += 1) {
   data.push({
-    userId: i,
+    userId: 13,
     carrier: 1,
     ...getBillData(),
-    emissionAt: moment().tz(apiConfig.timezone).add(numberRandom(-200, -25), 'hours'),
-    paidAt: moment().tz(apiConfig.timezone).add(numberRandom(-24, -1), 'hours'),
+    emissionAt: moment.utc(`2018-${(`0${i}`).slice(-2)}-01 01:00:00`),
+    paidAt: moment.utc(`2018-${(`0${i}`).slice(-2)}-05 10:00:00`),
   });
 }
 
