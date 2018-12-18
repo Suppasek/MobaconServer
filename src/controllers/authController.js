@@ -119,7 +119,7 @@ const createOperator = async (req, res) => {
               fullName: req.body.fullName,
               phoneNumber: req.body.phoneNumber,
               email: req.body.email,
-              imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
+              imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : `/mobacon/api/image/profile/default/${constant.IMAGE.DEFAULT}`,
               verified: false,
               activated: true,
             });

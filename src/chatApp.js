@@ -20,6 +20,7 @@ const {
   Users,
   OperatorTokens,
   UserTokens,
+  Requests,
   Plans,
 } = require('./models');
 const SocketSchema = require('./mongoSchema/socketSchema');
@@ -32,6 +33,7 @@ apiConfig.secret = secret;
 mongoose.connect(mongoConfig.mongoUri, {
   useNewUrlParser: true,
 });
+mongoose.set('useFindAndModify', false);
 
 // ClASSES
 class CustomError extends Error {
@@ -46,9 +48,9 @@ class CustomError extends Error {
 const clear = async () => {
   await ChatRoomSchema.deleteMany({});
   await ChatRoomSchema.create({
-    userId: 1,
+    userId: 13,
     operatorId: 1,
-    requestId: 12,
+    requestId: 11,
   });
   await ChatMessageSchema.deleteMany({});
 };
@@ -191,22 +193,6 @@ const authorization = async (socket, next) => {
     }
   });
 };
-const checkRole = async (socketId, roleId, socketCallback, next) => {
-  try {
-    const foundSocketId = await SocketSchema.find({
-      socketId,
-    });
-
-    if (!foundSocketId) throw new CustomError('ChatError', 'socket not found');
-    else if (foundSocketId.roleId !== roleId) throw new CustomError('ChatError', 'invalid roleId');
-    else next();
-  } catch (err) {
-    socketCallback({
-      ok: false,
-      error: err,
-    });
-  }
-};
 const payloadValidator = (socketCallback, payload, keys, next) => {
   const required = [];
   forEach(keys, (key) => {
@@ -336,15 +322,56 @@ const sendChatFromMobile = async (io, socket, payload, socketCallback) => {
 
     if (foundSocketId.roleId !== constant.ROLE.USER) throw new Error('ChatError', 'forbidden for chat');
     else {
+      const lastRequest = await Requests.findOne({
+        where: {
+          userId: {
+            [op.eq]: foundSocketId.userId,
+          },
+        },
+        order: [
+          ['id', 'DESC'],
+        ],
+      });
+
+      if (!lastRequest) throw new CustomError('ChatError', 'request does not exist');
+      else if (!lastRequest.operatorId) throw new CustomError('ChatError', 'request is not accept');
+      else {
+        const chatroom = await ChatRoomSchema.findOne({
+          userId: foundSocketId.userId,
+          operatorId: lastRequest.operatorId,
+          requestId: lastRequest.id,
+        });
+
+        if (!chatroom) throw new CustomError('ChatError', 'chatroom does not exist');
+        else if (!chatroom.messageId) {
+          const newChatMessage = await ChatMessageSchema.create({});
+          await ChatRoomSchema.updateOne({
+            userId: foundSocketId.userId,
+            operatorId: lastRequest.operatorId,
+            requestId: lastRequest.id,
+          }, {
+            messageId: newChatMessage.id,
+          });
+          storeChat(newChatMessage.id, foundSocketId.userId, lastRequest.operatorId, payload.text, constant.ROLE.USER);
+        } else {
+          storeChat(chatroom.messageId, foundSocketId.userId, lastRequest.operatorId, payload.text, constant.ROLE.USER);
+        }
+        const selfSocketIds = await SocketSchema.find({
+          socketId: {
+            $ne: foundSocketId.socketId,
+          },
+          userId: foundSocketId.userId,
+        });
+
+        socketCallback({
+          ok: true,
+          data: foundSocketId.roleId,
+        });
+        sendSelfChat(io, selfSocketIds, lastRequest.operatorId, payload.text);
+      }
       // store chat
       // send chat to other selfs
-
     }
-
-    socketCallback({
-      ok: true,
-      data: foundSocketId.roleId,
-    });
   } catch (err) {
     socketCallback({
       ok: false,
