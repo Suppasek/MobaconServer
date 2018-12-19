@@ -73,7 +73,7 @@ passport.use('web-login', new LocalStrategy({
 
     if (!operator) {
       done(null, false, {
-        status: 404,
+        status: 400,
         message: 'User not found',
       });
     } else if (!operator.verified) {
@@ -247,7 +247,7 @@ passport.use('mobile-login', new LocalStrategy({
 
     if (!user) {
       done(null, false, {
-        status: 404,
+        status: 400,
         message: 'User not found',
       });
     } else if (!user.verified) {

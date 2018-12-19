@@ -4,6 +4,9 @@ module.exports = {
   httpsPort: 8443,
   socketPort: 8888,
   analyticUrl: 'http://localhost:3000',
+  image: {
+    default: 'default_profile.png',
+  },
   fileUpload: {
     mimetype: ['image/png', 'image/jpeg'],
   },
@@ -11,5 +14,8 @@ module.exports = {
     protocol: 'http',
     host: 'mobacon-web.pieros.site',
     port: 80,
+  },
+  chat: {
+    loadOldChat: 10,
   },
 };

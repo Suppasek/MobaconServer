@@ -10,7 +10,7 @@ const getDefaultProfileImage = (req, res) => {
   if (fs.existsSync(imagePath)) {
     res.sendFile(imagePath);
   } else {
-    res.status(404).json({
+    res.status(400).json({
       message: 'image not found',
     });
   }
@@ -23,7 +23,7 @@ const getOperatorImage = (req, res) => {
       if (fs.existsSync(imagePath)) {
         res.sendFile(imagePath);
       } else {
-        res.status(404).json({
+        res.status(400).json({
           message: 'image not found',
         });
       }
@@ -37,7 +37,7 @@ const getUserImage = (req, res) => {
       if (fs.existsSync(imagePath)) {
         res.sendFile(imagePath);
       } else {
-        res.status(404).json({
+        res.status(400).json({
           message: 'image not found',
         });
       }
@@ -48,7 +48,7 @@ const getUserImage = (req, res) => {
         if (fs.existsSync(imagePath)) {
           res.sendFile(imagePath);
         } else {
-          res.status(404).json({
+          res.status(400).json({
             message: 'image not found',
           });
         }

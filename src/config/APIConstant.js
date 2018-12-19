@@ -13,7 +13,4 @@ module.exports = {
     ACCEPTED: 'Accepted',
     REVIEWED: 'Reviewed',
   },
-  IMAGE: {
-    DEFAULT: 'default_profile.png',
-  },
 };

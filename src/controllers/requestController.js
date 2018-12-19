@@ -217,7 +217,7 @@ const getRequestById = (req, res) => {
         });
 
         if (!request) {
-          res.status(404).json({
+          res.status(400).json({
             token: newToken,
             message: 'request not found',
           });
@@ -259,7 +259,7 @@ const requestAcceptance = (req, res) => {
         });
 
         if (!request) {
-          res.status(404).json({
+          res.status(400).json({
             token: newToken,
             message: 'request not found',
           });
@@ -309,7 +309,7 @@ const putRequestMemoById = (req, res) => {
           });
 
           if (!request) {
-            res.status(404).json({
+            res.status(400).json({
               token: newToken,
               message: 'request not found',
             });
@@ -382,7 +382,7 @@ const createRequestReviewById = (req, res) => {
           });
 
           if (!request) {
-            res.status(404).json({
+            res.status(400).json({
               token: newToken,
               message: 'request not found',
             });
@@ -587,7 +587,7 @@ const likeReviewByRequestId = (req, res) => {
         });
 
         if (!foundRequest) {
-          res.status(404).json({
+          res.status(400).json({
             token: newToken,
             message: 'request not found',
           });
@@ -641,7 +641,7 @@ const dislikeReviewByRequestId = (req, res) => {
         });
 
         if (!foundRequest) {
-          res.status(404).json({
+          res.status(400).json({
             token: newToken,
             message: 'request not found',
           });

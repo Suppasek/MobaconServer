@@ -1,9 +1,10 @@
 const path = require('path');
+const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const Sequelize = require('sequelize');
-const moment = require('moment');
 
+const apiConfig = require('../config/APIConfig');
 const constant = require('../config/APIConstant');
 const otpHelper = require('../helpers/otpHelper');
 const tokenHelper = require('../helpers/tokenHelper');
@@ -119,7 +120,7 @@ const createOperator = async (req, res) => {
               fullName: req.body.fullName,
               phoneNumber: req.body.phoneNumber,
               email: req.body.email,
-              imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : `/mobacon/api/image/profile/default/${constant.IMAGE.DEFAULT}`,
+              imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : `/mobacon/api/image/profile/default/${apiConfig.image.default}`,
               verified: false,
               activated: true,
             });
@@ -236,7 +237,7 @@ const activateOperator = async (req, res) => {
             });
           });
         } else {
-          res.status(404).json({
+          res.status(400).json({
             token: newToken,
             message: 'user not found',
           });
@@ -269,6 +270,7 @@ const mobileSignup = async (req, res) => {
         phoneNumber: req.body.phoneNumber,
         fullName: req.body.fullName,
         password,
+        imagePath: `/mobacon/api/image/profile/default/${apiConfig.image.default}`,
       });
       const user = await Users.findOne({
         attributes: ['id', 'phoneNumber', 'createdAt'],
@@ -401,7 +403,7 @@ const sendVerificationEmail = async (req, res) => {
       });
 
       if (!foundOperator) {
-        res.status(404).json({
+        res.status(400).json({
           message: 'User not found',
         });
       } else if (foundOperator.verified) {
@@ -477,7 +479,7 @@ const sendChangePasswordEmail = async (req, res) => {
       });
 
       if (!operator) {
-        res.status(404).json({
+        res.status(400).json({
           message: 'User not found',
         });
       } else if (!operator.verified) {
@@ -561,7 +563,7 @@ const sendVerificationOTP = async (req, res) => {
       });
 
       if (!user) {
-        res.status(404).json({
+        res.status(400).json({
           message: 'user not found',
         });
       } else if (user.verified) {
@@ -597,7 +599,7 @@ const verifyUserWithOTP = async (req, res) => {
       });
 
       if (!user) {
-        res.status(404).json({
+        res.status(400).json({
           message: 'user not found',
         });
       } else {
@@ -636,7 +638,7 @@ const sendChangePasswordSms = (req, res) => {
       });
 
       if (!user) {
-        res.status(404).json({
+        res.status(400).json({
           message: 'user not found',
         });
       } else {
