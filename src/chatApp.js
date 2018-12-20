@@ -654,7 +654,7 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
 };
 
 module.exports = (server) => {
-  // clear();
+  clear();
   clearSockets();
   const io = socketio(server);
 
