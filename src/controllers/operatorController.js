@@ -78,7 +78,7 @@ const getOperatorById = async (req, res) => {
         });
 
         if (!foundOperator) {
-          res.status(404).json({
+          res.status(400).json({
             token: newToken,
             message: 'user not found',
           });

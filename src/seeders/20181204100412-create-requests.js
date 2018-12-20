@@ -113,7 +113,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 12,
-    userId: 13,
+    userId: 1,
     carrierId: 1,
     billRef: billIds.bills[11]._id,
     status: 'Pending',

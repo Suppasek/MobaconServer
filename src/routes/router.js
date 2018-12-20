@@ -62,7 +62,10 @@ router.post('/mobile/changePassword', authController.sendChangePasswordSms);
 router.patch('/mobile/changePassword', authController.changePasswordwithChangePasswordCode);
 
 // GET IMAGE FILE
+router.get('/image/profile/default/:imageName', imageController.getDefaultProfileImage);
 router.get('/web/operator/image/:imageName', imageController.getOperatorImage);
+router.get('/web/user/image/:imageName', imageController.getUserImage);
+
 
 // ROLLBACK DATABASE
 router.get('/rollback', async (req, res) => {

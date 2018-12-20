@@ -16,7 +16,7 @@ const editUser = (req, res) => {
         const imagePathTemp = user.imagePath;
         const updatedUser = await user.update({
           fullName: req.body.fullName,
-          imagePath: req.file ? `/mobacon/api/web/operator/image/${req.file.filename}` : undefined,
+          imagePath: req.file ? `/mobacon/api/web/user/image/${req.file.filename}` : undefined,
         }, {
           where: {
             id: {

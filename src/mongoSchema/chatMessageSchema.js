@@ -4,12 +4,12 @@ const ChatMessageSchema = new mongoose.Schema({
   read: {
     user: {
       type: Boolean,
-      default: false,
+      default: true,
       required: true,
     },
     operator: {
       type: Boolean,
-      default: false,
+      default: true,
       required: true,
     },
   },
@@ -23,6 +23,10 @@ const ChatMessageSchema = new mongoose.Schema({
       required: true,
     },
     operatorId: {
+      type: Number,
+      required: true,
+    },
+    senderRoleId: {
       type: Number,
       required: true,
     },

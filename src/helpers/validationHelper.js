@@ -23,7 +23,7 @@ const bodyValidator = async (req, res, keys, next) => {
 
     if (invalid.length > 0) {
       res.status(400).json({
-        message: `${invalid} is required`,
+        message: `${invalid} ${invalid.length > 1 ? 'are' : 'is'} required`,
       });
     } else {
       next(req.body);
@@ -55,7 +55,7 @@ const queryValidator = async (req, res, keys, next) => {
 
     if (invalid.length > 0) {
       res.status(400).json({
-        message: `${invalid} is required`,
+        message: `${invalid} ${invalid.length > 1 ? 'are' : 'is'} required`,
       });
     } else {
       next(req.query);
