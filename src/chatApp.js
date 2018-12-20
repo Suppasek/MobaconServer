@@ -86,6 +86,21 @@ const removeSocketId = async (socketId) => {
     socketId,
   });
 };
+const getSelfSocket = async (socketId, time = 0) => {
+  const selfSocketId = await SocketSchema.findOne({
+    socketId,
+  });
+
+  if (time > 10) {
+    return null;
+  } else if (!selfSocketId) {
+    const newTime = time + 1;
+    const result = await getSelfSocket(socketId, newTime);
+    return result;
+  } else {
+    return selfSocketId;
+  }
+};
 const authorization = async (socket, next) => {
   jwt.verify(socket.handshake.query.token, apiConfig.secret, { ignoreExpiration: true }, async (error, decoded) => {
     try {
@@ -367,9 +382,7 @@ const sendWebSelfChat = async (io, requestId, operatorId, userId, chat, selfSock
 };
 const mobileChat = async (io, socket, payload, socketCallback) => {
   try {
-    const foundSocketId = await SocketSchema.findOne({
-      socketId: socket.id,
-    });
+    const foundSocketId = await getSelfSocket(socket.id);
 
     if (foundSocketId.roleId !== constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat');
     else {
@@ -440,9 +453,7 @@ const mobileChat = async (io, socket, payload, socketCallback) => {
 };
 const webChat = async (io, socket, payload, socketCallback) => {
   try {
-    const foundSocketId = await SocketSchema.findOne({
-      socketId: socket.id,
-    });
+    const foundSocketId = await getSelfSocket(socket.id);
     const request = await Requests.findOne({
       where: {
         id: {
@@ -478,9 +489,7 @@ const webChat = async (io, socket, payload, socketCallback) => {
 };
 const getMobileOldChat = async (socket, payload, socketCallback) => {
   try {
-    const foundSocketId = await SocketSchema.findOne({
-      socketId: socket.id,
-    });
+    const foundSocketId = await getSelfSocket(socket.id);
 
     if (foundSocketId.roleId !== constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat');
     else {
@@ -570,9 +579,7 @@ const getMobileOldChat = async (socket, payload, socketCallback) => {
 };
 const getWebOldChat = async (socket, payload, socketCallback) => {
   try {
-    const foundSocketId = await SocketSchema.findOne({
-      socketId: socket.id,
-    });
+    const foundSocketId = await getSelfSocket(socket.id);
 
     if (foundSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat');
     else {
@@ -658,16 +665,10 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
 };
 const getWebChatList = async (socket, payload, socketCallback) => {
   try {
-    const selfSocketId = await SocketSchema.findOne({
-      socketId: socket.id,
-    });
+    const selfSocketId = await getSelfSocket(socket.id);
 
     if (selfSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat list');
     else {
-      // const chatroom = await ChatRoomSchema.find({
-      //   operatorId: selfSocketId.userId,
-      // });
-
       const chatroom = await ChatRoomSchema.aggregate([{
         $match: {
           operatorId: selfSocketId.userId,
@@ -683,31 +684,27 @@ const getWebChatList = async (socket, payload, socketCallback) => {
         $skip: payload.existChatList,
       }, {
         $limit: apiConfig.chat.loadOldChat,
-      // }, {
-      //   $project: {
-      //     _id: true,
-      //     operatorId: '$operatorId',
-      //   },
-      // }, {
-      //   $addFields: {
-      //     operator: '$operatorId',
-      //     y: 2,
-      //   },
       }, {
         $lookup: {
           from: 'chatmessages',
-          localField: 'item',
-          foreignField: 'sku',
-          as: 'inventory_docs',
+          localField: 'messageId',
+          foreignField: '_id',
+          as: 'chat',
         },
+      }, {
+        $unwind: '$chat',
+      // }, {
+      //   $unwind: '$chat.data',
       }]);
 
       socketCallback({
         ok: true,
-        data: chatroom,
+        // data: chatroom,
+        data: chatroom[chatroom.length - 1],
       });
     }
   } catch (err) {
+    console.log(err);
     socketCallback({
       ok: false,
       error: err,
