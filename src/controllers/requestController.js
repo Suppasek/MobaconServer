@@ -57,7 +57,7 @@ const getRequests = (req, res) => {
           }, {
             model: Operators,
             as: 'operator',
-            attributes: ['fullName'],
+            attributes: ['id', 'fullName'],
           }],
         });
         res.status(200).json({
@@ -134,7 +134,7 @@ const getAcceptedRequests = (req, res) => {
           }, {
             model: Operators,
             as: 'operator',
-            attributes: ['fullName'],
+            attributes: ['id', 'fullName'],
           }],
         });
         res.status(200).json({
