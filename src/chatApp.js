@@ -41,11 +41,15 @@ class CustomError extends Error {
 // METHODS
 const clear = async () => {
   await ChatRoomSchema.deleteMany({});
-  await ChatRoomSchema.create({
+  await ChatRoomSchema.create([{
     userId: 13,
     operatorId: 1,
     requestId: 11,
-  });
+  }, {
+    userId: 1,
+    operatorId: 1,
+    requestId: 12,
+  }]);
   await ChatMessageSchema.deleteMany({});
 };
 const clearSockets = async () => {
@@ -652,9 +656,67 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
     });
   }
 };
+const getWebChatList = async (socket, payload, socketCallback) => {
+  try {
+    const selfSocketId = await SocketSchema.findOne({
+      socketId: socket.id,
+    });
+
+    if (selfSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat list');
+    else {
+      // const chatroom = await ChatRoomSchema.find({
+      //   operatorId: selfSocketId.userId,
+      // });
+
+      const chatroom = await ChatRoomSchema.aggregate([{
+        $match: {
+          operatorId: selfSocketId.userId,
+          messageId: {
+            $ne: null,
+          },
+        },
+      }, {
+        $sort: {
+          createdAt: -1,
+        },
+      }, {
+        $skip: payload.existChatList,
+      }, {
+        $limit: apiConfig.chat.loadOldChat,
+      // }, {
+      //   $project: {
+      //     _id: true,
+      //     operatorId: '$operatorId',
+      //   },
+      // }, {
+      //   $addFields: {
+      //     operator: '$operatorId',
+      //     y: 2,
+      //   },
+      }, {
+        $lookup: {
+          from: 'chatmessages',
+          localField: 'item',
+          foreignField: 'sku',
+          as: 'inventory_docs',
+        },
+      }]);
+
+      socketCallback({
+        ok: true,
+        data: chatroom,
+      });
+    }
+  } catch (err) {
+    socketCallback({
+      ok: false,
+      error: err,
+    });
+  }
+};
 
 module.exports = (server) => {
-  clear();
+  // clear();
   clearSockets();
   const io = socketio(server);
 
@@ -673,6 +735,9 @@ module.exports = (server) => {
         }))
         .on('web-old-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChat', 'requestId'], () => {
           getWebOldChat(socket, payload, socketCallback);
+        }))
+        .on('web-chat-list', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChatList'], () => {
+          getWebChatList(socket, payload, socketCallback);
         }))
         .on('disconnect', () => removeSocketId(socket.id));
     });
