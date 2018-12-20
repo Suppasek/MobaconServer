@@ -159,7 +159,7 @@ passport.use('web-jwt', new JwtStrategy({
       if (moment.utc(jwtPayload.exp) > moment.utc()) {
         done(null, operator);
       } else {
-        const isOutOfTime = moment.utc().duration(moment.utc().diff(moment.utc(jwtPayload.exp))).asHours() > 120;
+        const isOutOfTime = moment.duration(moment.utc().diff(moment.utc(jwtPayload.exp))).asHours() > 120;
 
         if (isOutOfTime) {
           done(null, false, { message: 'token has expired' });
@@ -332,7 +332,7 @@ passport.use('mobile-jwt', new JwtStrategy({
       if (moment.utc(jwtPayload.exp) > moment.utc()) {
         done(null, user);
       } else {
-        const isOutOfTime = moment.utc().duration(moment.utc().diff(moment.utc(jwtPayload.exp))).asHours() > 120;
+        const isOutOfTime = moment.duration(moment.utc().diff(moment.utc(jwtPayload.exp))).asHours() > 120;
 
         if (isOutOfTime) {
           done(null, false, { message: 'token has expired' });
