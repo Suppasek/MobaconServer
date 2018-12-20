@@ -44,29 +44,20 @@ const getRequests = (req, res) => {
           include: [{
             model: Carriers,
             as: 'carrier',
-            attributes: ['id', 'name'],
+            attributes: ['name'],
           }, {
             model: Users,
             as: 'user',
-            attributes: ['id', 'fullName', 'phoneNumber', 'imagePath', 'verified', 'createdAt'],
+            attributes: ['fullName', 'createdAt'],
             include: [{
-              model: Roles,
-              as: 'role',
-              attributes: ['id', 'name'],
-            }, {
               model: Plans,
               as: 'plan',
-              attributes: ['id', 'name'],
+              attributes: ['name'],
             }],
           }, {
             model: Operators,
             as: 'operator',
-            attributes: ['id', 'fullName', 'phoneNumber', 'imagePath', 'verified', 'activated', 'createdAt'],
-            include: [{
-              model: Roles,
-              as: 'role',
-              attributes: ['id', 'name'],
-            }],
+            attributes: ['fullName'],
           }],
         });
         res.status(200).json({
@@ -130,29 +121,20 @@ const getAcceptedRequests = (req, res) => {
           include: [{
             model: Carriers,
             as: 'carrier',
-            attributes: ['id', 'name'],
+            attributes: ['name'],
           }, {
             model: Users,
             as: 'user',
-            attributes: ['id', 'fullName', 'phoneNumber', 'imagePath', 'verified', 'createdAt'],
+            attributes: ['fullName', 'createdAt'],
             include: [{
-              model: Roles,
-              as: 'role',
-              attributes: ['id', 'name'],
-            }, {
               model: Plans,
               as: 'plan',
-              attributes: ['id', 'name'],
+              attributes: ['name'],
             }],
           }, {
             model: Operators,
             as: 'operator',
-            attributes: ['id', 'fullName', 'phoneNumber', 'imagePath', 'verified', 'activated', 'createdAt'],
-            include: [{
-              model: Roles,
-              as: 'role',
-              attributes: ['id', 'name'],
-            }],
+            attributes: ['fullName'],
           }],
         });
         res.status(200).json({
