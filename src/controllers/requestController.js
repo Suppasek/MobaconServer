@@ -36,7 +36,7 @@ const getRequests = (req, res) => {
           offset: await getPage(req.query.page, req.query.limit),
           limit: (Number)(req.query.limit) || undefined,
           order: [
-            Sequelize.fn('field', Sequelize.col('status'), 'Accepted', 'Reviewed', 'Pending'),
+            Sequelize.fn('field', Sequelize.col('status'), 'Pending', 'Accepted', 'Reviewed'),
             ['createdAt', 'DESC'],
             ['id', 'ASC'],
           ],
