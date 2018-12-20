@@ -270,25 +270,14 @@ const sendChatToUser = async (io, requestId, operatorId, userId, chat) => {
       attributes: ['id', 'name'],
     }],
   });
-  const operator = await Operators.findOne({
-    where: {
-      id: {
-        [op.eq]: operatorId,
-      },
-    },
-  });
   forEach(operatorSocketIds, (targetSocketId) => {
     io.sockets.connected[targetSocketId.socketId].emit('web-chat', {
       ok: true,
       data: {
         _id: chat._id,
         message: chat.message,
-        sender: {
-          role: {
-            id: operator.roleId,
-          },
-        },
-        operator: {
+        request: {
+          id: request.id,
           carrier: request.dataValues.carrier.dataValues,
         },
         createdAt: chat.createdAt,
@@ -322,7 +311,8 @@ const sendMobileSelfChat = async (io, requestId, operatorId, userId, chat, selfS
       data: {
         _id: chat._id,
         message: chat.message,
-        operator: {
+        request: {
+          id: request.id,
           carrier: request.dataValues.carrier.dataValues,
         },
         createdAt: chat.createdAt,
@@ -338,12 +328,34 @@ const sendWebSelfChat = async (io, requestId, operatorId, userId, chat, selfSock
     userId: operatorId,
   });
 
+  const request = await Requests.findOne({
+    where: {
+      id: {
+        [op.eq]: requestId,
+      },
+    },
+    include: [{
+      model: Carriers,
+      as: 'carrier',
+      attributes: ['id', 'name'],
+    }, {
+      model: Users,
+      as: 'user',
+      attributes: ['id', 'fullName', 'imagePath'],
+    }],
+  });
+
   forEach(selfSocketIds, (SSID) => {
     io.sockets.connected[SSID.socketId].emit('web-self-chat', {
       ok: true,
       data: {
         _id: chat._id,
         message: chat.message,
+        user: request.dataValues.user.dataValues,
+        request: {
+          id: request.id,
+          carrier: request.dataValues.carrier.dataValues,
+        },
         createdAt: chat.createdAt,
       },
     });
@@ -501,7 +513,13 @@ const getMobileOldChat = async (socket, payload, socketCallback) => {
           });
         } else {
           const result = await ChatMessageSchema.aggregate([{
+            $match: {},
+          }, {
             $unwind: '$data',
+          }, {
+            $sort: {
+              'data.createdAt': -1,
+            },
           }, {
             $skip: payload.existChat,
           }, {
@@ -519,7 +537,8 @@ const getMobileOldChat = async (socket, payload, socketCallback) => {
                     },
                   },
                   createdAt: '$data.createdAt',
-                  operator: {
+                  request: {
+                    id: lastRequest.id,
                     carrier: lastRequest.dataValues.carrier.dataValues,
                   },
                 },
@@ -533,7 +552,7 @@ const getMobileOldChat = async (socket, payload, socketCallback) => {
 
           socketCallback({
             ok: true,
-            data: result[0].data,
+            data: result[0] ? result[0].data : [],
           });
         }
       }
@@ -563,6 +582,10 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
           model: Carriers,
           as: 'carrier',
           attributes: ['id', 'name'],
+        }, {
+          model: Users,
+          as: 'user',
+          attributes: ['id', 'fullName', 'imagePath'],
         }],
       });
 
@@ -581,6 +604,10 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
           const result = await ChatMessageSchema.aggregate([{
             $unwind: '$data',
           }, {
+            $sort: {
+              'data.createdAt': -1,
+            },
+          }, {
             $skip: payload.existChat,
           }, {
             $limit: apiConfig.chat.loadOldChat,
@@ -596,8 +623,10 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
                       id: '$data.senderRoleId',
                     },
                   },
+                  user: request.dataValues.user.dataValues,
                   createdAt: '$data.createdAt',
-                  operator: {
+                  request: {
+                    id: request.id,
                     carrier: request.dataValues.carrier.dataValues,
                   },
                 },
@@ -611,13 +640,12 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
 
           socketCallback({
             ok: true,
-            data: result[0].data,
+            data: result[0] ? result[0].data : [],
           });
         }
       }
     }
   } catch (err) {
-    console.log(err);
     socketCallback({
       ok: false,
       error: err,
