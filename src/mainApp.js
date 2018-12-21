@@ -1,5 +1,6 @@
 const cors = require('cors');
 const http = require('http');
+const morgan = require('morgan');
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
@@ -14,6 +15,7 @@ const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
+  .use(morgan())
   .use('/mobacon/api/', router)
   .use(timeout(12000000));
 

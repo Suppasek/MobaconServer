@@ -22,6 +22,11 @@ const ChatRoomSchema = new mongoose.Schema({
     default: Date.now,
     required: true,
   },
+  updatedAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
 });
 
 module.exports = mongoose.model('ChatRooms', ChatRoomSchema);
