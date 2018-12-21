@@ -1,3 +1,6 @@
+const fs = require('fs');
+const path = require('path');
+
 const billIds = require('../mock_up/billIds');
 
 module.exports = {
@@ -118,6 +121,8 @@ module.exports = {
     status: 'Pending',
     createdAt: Sequelize.fn('NOW'),
     updatedAt: Sequelize.fn('NOW'),
-  }]),
+  }]).then(() => {
+    fs.unlinkSync(path.join(__dirname, '../mock_up/billIds.json'));
+  }),
   down: (queryInterface) => queryInterface.bulkDelete('Requests', null, {}),
 };
