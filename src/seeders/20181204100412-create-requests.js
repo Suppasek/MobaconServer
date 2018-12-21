@@ -103,9 +103,10 @@ module.exports = {
   }, {
     id: 11,
     userId: 3,
+    operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[10]._id,
-    status: 'Pending',
+    status: 'Reviewed',
     offerId: 11,
     createdAt: Sequelize.fn('NOW'),
     updatedAt: Sequelize.fn('NOW'),
