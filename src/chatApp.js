@@ -41,16 +41,44 @@ class CustomError extends Error {
 // METHODS
 const clear = async () => {
   await ChatRoomSchema.deleteMany({});
-  await ChatRoomSchema.create([{
-    userId: 13,
-    operatorId: 1,
-    requestId: 11,
+  await ChatMessageSchema.deleteMany({});
+  const chatMessage = await ChatMessageSchema.insertMany([{
+    data: [{
+      message: '1',
+      userId: 1,
+      operatorId: 1,
+      senderRoleId: 3,
+    }, {
+      message: '2',
+      userId: 1,
+      operatorId: 1,
+      senderRoleId: 1,
+    }],
   }, {
+    data: [{
+      message: '1',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+    }, {
+      message: '2',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+    }],
+  }]);
+
+  await ChatRoomSchema.create([{
     userId: 1,
     operatorId: 1,
     requestId: 12,
+    messageId: chatMessage[0]._id,
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 11,
+    messageId: chatMessage[1]._id,
   }]);
-  await ChatMessageSchema.deleteMany({});
 };
 const clearSockets = async () => {
   await SocketSchema.deleteMany({});
@@ -63,6 +91,11 @@ const storeSocketId = async (socketId, user) => {
   });
 };
 const storeChat = async (messageId, userId, operatorId, message, senderRoleId) => {
+  await ChatRoomSchema.update({
+    messageId,
+  }, {
+    updatedAt: moment.utc(),
+  });
   const storedChat = await ChatMessageSchema.findByIdAndUpdate(messageId, {
     read: {
       user: senderRoleId === constant.ROLE.USER,
@@ -91,7 +124,7 @@ const getSelfSocket = async (socketId, time = 0) => {
     socketId,
   });
 
-  if (time > 10) {
+  if (time > 0) {
     return null;
   } else if (!selfSocketId) {
     const newTime = time + 1;
@@ -678,7 +711,7 @@ const getWebChatList = async (socket, payload, socketCallback) => {
         },
       }, {
         $sort: {
-          createdAt: -1,
+          updatedAt: -1,
         },
       }, {
         $skip: payload.existChatList,
@@ -694,13 +727,29 @@ const getWebChatList = async (socket, payload, socketCallback) => {
       }, {
         $unwind: '$chat',
       // }, {
-      //   $unwind: '$chat.data',
+      //   $group: {
+      //     _id: '$chat.id',
+      //     read: 'chat.read',
+      //   },
+      }, {
+        $project: {
+          _id: '$_id',
+          request: {
+            id: '$requestId',
+          },
+          chat: {
+            _id: '$chat.id',
+            read: '$chat.read',
+            data: {
+              $arrayElemAt: ['$chat.data', -1],
+            },
+          },
+        },
       }]);
 
       socketCallback({
         ok: true,
-        // data: chatroom,
-        data: chatroom[chatroom.length - 1],
+        data: chatroom,
       });
     }
   } catch (err) {
