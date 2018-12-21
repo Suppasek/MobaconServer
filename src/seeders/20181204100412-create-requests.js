@@ -102,7 +102,7 @@ module.exports = {
     updatedAt: Sequelize.fn('NOW'),
   }, {
     id: 11,
-    userId: 3,
+    userId: 13,
     operatorId: 1,
     carrierId: 1,
     billRef: billIds.bills[10]._id,
