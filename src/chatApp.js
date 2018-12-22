@@ -724,27 +724,27 @@ const getWebChatList = async (socket, payload, socketCallback) => {
           foreignField: '_id',
           as: 'chat',
         },
-      }, {
-        $unwind: '$chat',
+      // }, {
+      //   $unwind: '$chat',
       // }, {
       //   $group: {
-      //     _id: '$chat.id',
-      //     read: 'chat.read',
+      //     _id: '$_id',
+      //     chat: 'chat.message',
       //   },
-      }, {
-        $project: {
-          _id: '$_id',
-          request: {
-            id: '$requestId',
-          },
-          chat: {
-            _id: '$chat.id',
-            read: '$chat.read',
-            data: {
-              $arrayElemAt: ['$chat.data', -1],
-            },
-          },
-        },
+      // }, {
+      //   $project: {
+      //     _id: '$_id',
+      //     request: {
+      //       id: '$requestId',
+      //     },
+      //     chat: {
+      //       _id: '$chat.id',
+      //       read: '$chat.read',
+      //       data: {
+      //         $arrayElemAt: ['$chat.data', -1],
+      //       },
+      //     },
+      //   },
       }]);
 
       socketCallback({
