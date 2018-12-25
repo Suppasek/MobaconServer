@@ -18,4 +18,36 @@ module.exports = {
   chat: {
     loadOldChat: 10,
   },
+  jwt: {
+    web: {
+      time: 12,
+      unit: 'hours',
+    },
+    mobile: {
+      time: 12,
+      unit: 'hours',
+    },
+  },
+  token: {
+    verification: {
+      web: {
+        time: 12,
+        unit: 'hours',
+      },
+      mobile: {
+        time: 1,
+        unit: 'minutes',
+      },
+    },
+    changePassword: {
+      web: {
+        time: 12,
+        unit: 'hours',
+      },
+      mobile: {
+        time: 1,
+        unit: 'hours',
+      },
+    },
+  },
 };

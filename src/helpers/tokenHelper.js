@@ -20,8 +20,8 @@ const {
 const op = Sequelize.Op;
 config.secret = secret;
 
-const getOperatorToken = async (user, time = 12) => {
-  const expired = Math.floor(moment.utc().add(time, 's'));
+const getOperatorToken = async (user, time = config.jwt.web.time) => {
+  const expired = Math.floor(moment.utc().add(time, config.jwt.web.unit));
   const token = await jwt.sign({
     data: user,
     exp: expired,
@@ -34,8 +34,8 @@ const getOperatorToken = async (user, time = 12) => {
 
   return token;
 };
-const getUserToken = async (user, time = 12) => {
-  const expired = Math.floor(moment.utc().add(time, 's'));
+const getUserToken = async (user, time = config.jwt.mobile.time) => {
+  const expired = Math.floor(moment.utc().add(time, config.jwt.mobile.unit));
   const token = await jwt.sign({
     data: user,
     exp: expired,
@@ -48,17 +48,17 @@ const getUserToken = async (user, time = 12) => {
 
   return token;
 };
-const storeConfirmationToken = async (email, userId, createdBy, time = 12) => {
+const storeConfirmationToken = async (email, userId, createdBy, time = config.token.verification.web.time) => {
   const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
   await ConfirmationTokens.create({
     userId,
     token,
-    expired: moment.utc().add(time, 'hours'),
+    expired: moment.utc().add(time, config.token.verification.web.unit),
     createdBy,
   });
   emailHelper.sendVerificationMail(email, token);
 };
-const storeConfirmationTokenByOperator = async (email, userId, createdBy, time = 12) => {
+const storeConfirmationTokenByOperator = async (email, userId, createdBy, time = config.token.verification.web.time) => {
   const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
   await ConfirmationTokens.update({
     expired: moment.utc(),
@@ -75,12 +75,12 @@ const storeConfirmationTokenByOperator = async (email, userId, createdBy, time =
   await ConfirmationTokens.create({
     userId,
     token,
-    expired: moment.utc().add(time, 'hours'),
+    expired: moment.utc().add(time, config.token.verification.web.unit),
     createdBy,
   });
   emailHelper.sendVerificationMail(email, token);
 };
-const storeForgetPasswordToken = async (operator, expiredIn = 12) => {
+const storeForgetPasswordToken = async (operator, expiredIn = config.token.changePassword.web.time) => {
   try {
     const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
     await ForgetPasswordTokens.update({
@@ -97,7 +97,7 @@ const storeForgetPasswordToken = async (operator, expiredIn = 12) => {
     });
     const forgetPasswordToken = await ForgetPasswordTokens.create({
       token,
-      expired: moment.utc().add(expiredIn, 'hours'),
+      expired: moment.utc().add(expiredIn, config.token.changePassword.web.unit),
       createdBy: operator.id,
     });
     return forgetPasswordToken;

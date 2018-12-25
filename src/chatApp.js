@@ -124,7 +124,7 @@ const getSelfSocket = async (socketId, time = 0) => {
     socketId,
   });
 
-  if (time > 0) {
+  if (time > 10) {
     return null;
   } else if (!selfSocketId) {
     const newTime = time + 1;
@@ -716,36 +716,75 @@ const getWebChatList = async (socket, payload, socketCallback) => {
           foreignField: '_id',
           as: 'chat',
         },
-      // }, {
-      //   $unwind: '$chat',
-      // }, {
-      //   $group: {
-      //     _id: '$_id',
-      //     chat: 'chat.message',
-      //   },
-      // }, {
-      //   $project: {
-      //     _id: '$_id',
-      //     request: {
-      //       id: '$requestId',
-      //     },
-      //     chat: {
-      //       _id: '$chat.id',
-      //       read: '$chat.read',
-      //       data: {
-      //         $arrayElemAt: ['$chat.data', -1],
-      //       },
-      //     },
-      //   },
+      }, {
+        $unwind: '$chat',
+      }, {
+        $project: {
+          _id: '$_id',
+          request: {
+            id: '$requestId',
+          },
+          chat: {
+            _id: '$chat.id',
+            read: '$chat.read',
+            data: {
+              $arrayElemAt: ['$chat.data', -1],
+            },
+          },
+        },
       }]);
+
+      const result = await Promise.all(chatroom.map(async (value) => {
+        const request = await Requests.findOne({
+          attributes: ['id'],
+          where: {
+            id: {
+              [op.eq]: value.request.id,
+            },
+          },
+          include: [{
+            model: Carriers,
+            as: 'carrier',
+            attributes: ['id', 'name'],
+          }],
+        });
+        const user = await Users.findOne({
+          attributes: ['id', 'fullName', 'imagePath'],
+          where: {
+            id: {
+              [op.eq]: value.chat.data.userId,
+            },
+          },
+        });
+        const operator = await Operators.findOne({
+          attributes: ['id', 'fullName', 'imagePath'],
+          where: {
+            id: {
+              [op.eq]: value.chat.data.operatorId,
+            },
+          },
+        });
+        const temp = {
+          request: request.dataValues,
+          chat: {
+            _id: value.chat.data._id,
+            read: value.chat.read,
+            message: value.chat.data.message,
+            operator: operator.dataValues,
+            user: user.dataValues,
+            senderRoleId: value.chat.data.senderRoleId,
+            createdAt: value.chat.data.createdAt,
+          },
+        };
+        return temp;
+      }));
 
       socketCallback({
         ok: true,
-        data: chatroom,
+        data: result,
       });
     }
   } catch (err) {
-    console.log(err);
     socketCallback({
       ok: false,
       error: err,
