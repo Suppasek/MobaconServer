@@ -133,14 +133,6 @@ passport.use('web-jwt', new JwtStrategy({
       if (req.file) {
         fs.unlink(req.file.path, () => {});
       }
-    } else if (foundToken.banned) {
-      done(null, false, {
-        status: 401,
-        message: 'token has expired',
-      });
-      if (req.file) {
-        fs.unlink(req.file.path, () => {});
-      }
     } else {
       const operator = await Operators.findOne({
         attributes: ['id', 'fullName', 'phoneNumber', 'email', 'imagePath'],
@@ -171,9 +163,7 @@ passport.use('web-jwt', new JwtStrategy({
             token: await tokenHelper.getOperatorToken(operator),
           });
         }
-        foundToken.update({
-          banned: true,
-        });
+        foundToken.destroy();
       }
     }
   } catch (err) {
@@ -193,31 +183,23 @@ passport.use('web-logout', new JwtStrategy({
   session: false,
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
-  if (moment.utc(jwtPayload.exp) > moment.utc()) {
-    try {
-      const foundToken = await OperatorTokens.findOne({
-        where: {
-          token: {
-            [op.eq]: token,
-          },
+  try {
+    const foundToken = await OperatorTokens.findOne({
+      where: {
+        token: {
+          [op.eq]: token,
         },
-      });
+      },
+    });
 
-      if (!foundToken) {
-        done(null, false, { message: 'Token is invalid' });
-      } else if (foundToken.banned) {
-        done(null, false, { message: 'Token has expired' });
-      } else {
-        await foundToken.update({
-          banned: true,
-        });
-        done(null, foundToken, { message: 'Logout successfully' });
-      }
-    } catch (error) {
-      done(error, false, { message: 'Internal server error' });
+    if (!foundToken) {
+      done(null, false, { message: 'Token is invalid' });
+    } else {
+      await foundToken.destroy();
+      done(null, foundToken, { message: 'Logout successfully' });
     }
-  } else {
-    done(null, false, { message: 'Token has expired' });
+  } catch (error) {
+    done(error, false, { message: 'Internal server error' });
   }
 }));
 
@@ -302,14 +284,6 @@ passport.use('mobile-jwt', new JwtStrategy({
       if (req.file) {
         fs.unlink(req.file.path, () => {});
       }
-    } else if (foundToken.banned) {
-      done(null, false, {
-        status: 401,
-        message: 'token has expired',
-      });
-      if (req.file) {
-        fs.unlink(req.file.path, () => {});
-      }
     } else {
       const user = await Users.findOne({
         attributes: ['id', 'fullName', 'phoneNumber', 'imagePath'],
@@ -344,9 +318,7 @@ passport.use('mobile-jwt', new JwtStrategy({
             token: await tokenHelper.getUserToken(user),
           });
         }
-        foundToken.update({
-          banned: true,
-        });
+        foundToken.destroy();
       }
     }
   } catch (err) {
@@ -366,31 +338,23 @@ passport.use('mobile-logout', new JwtStrategy({
   session: false,
 }, async (req, jwtPayload, done) => {
   const token = req.headers.authorization.split(' ')[1];
-  if (moment.utc(jwtPayload.exp) > moment.utc()) {
-    try {
-      const foundToken = await UserTokens.findOne({
-        where: {
-          token: {
-            [op.eq]: token,
-          },
+  try {
+    const foundToken = await UserTokens.findOne({
+      where: {
+        token: {
+          [op.eq]: token,
         },
-      });
+      },
+    });
 
-      if (!foundToken) {
-        done(null, false, { message: 'Token is invalid' });
-      } else if (foundToken.banned) {
-        done(null, false, { message: 'Token has expired' });
-      } else {
-        await foundToken.update({
-          banned: true,
-        });
-        done(null, foundToken, { message: 'Logout successfully' });
-      }
-    } catch (error) {
-      done(error, false, { message: 'Internal server error' });
+    if (!foundToken) {
+      done(null, false, { message: 'Token is invalid' });
+    } else {
+      await foundToken.destroy();
+      done(null, foundToken, { message: 'Logout successfully' });
     }
-  } else {
-    done(null, false, { message: 'Token has expired' });
+  } catch (error) {
+    done(error, false, { message: 'Internal server error' });
   }
 }));
 

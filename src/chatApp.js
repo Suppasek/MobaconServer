@@ -168,13 +168,9 @@ const authorization = async (socket, next) => {
 
         if (!foundToken) {
           throw new CustomError('JsonWebTokenError', 'token is invalid');
-        } else if (foundToken.banned) {
-          throw new CustomError('JsonWebTokenError', 'token has expired');
         } else if (moment.utc(decoded.exp) < moment.utc()) {
           const newToken = await tokenHelper.getUserToken(user);
-          foundToken.update({
-            banned: true,
-          });
+          foundToken.destroy();
           socket.emit('authorized', {
             ok: true,
             token: newToken,
@@ -213,13 +209,9 @@ const authorization = async (socket, next) => {
 
         if (!foundToken) {
           throw new CustomError('JsonWebTokenError', 'token is invalid');
-        } else if (foundToken.banned) {
-          throw new CustomError('JsonWebTokenError', 'token has expired');
         } else if (moment.utc(decoded.exp) < moment.utc()) {
           const newToken = await tokenHelper.getOperatorToken(operator);
-          foundToken.update({
-            banned: true,
-          });
+          foundToken.destroy();
           socket.emit('authorized', {
             ok: true,
             token: newToken,

@@ -21,7 +21,7 @@ const op = Sequelize.Op;
 config.secret = secret;
 
 const getOperatorToken = async (user, time = 12) => {
-  const expired = Math.floor(moment.utc().add(time, 'hours'));
+  const expired = Math.floor(moment.utc().add(time, 's'));
   const token = await jwt.sign({
     data: user,
     exp: expired,
@@ -35,7 +35,7 @@ const getOperatorToken = async (user, time = 12) => {
   return token;
 };
 const getUserToken = async (user, time = 12) => {
-  const expired = Math.floor(moment.utc().add(time, 'hours'));
+  const expired = Math.floor(moment.utc().add(time, 's'));
   const token = await jwt.sign({
     data: user,
     exp: expired,
