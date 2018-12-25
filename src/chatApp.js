@@ -124,7 +124,7 @@ const getSelfSocket = async (socketId, time = 0) => {
     socketId,
   });
 
-  if (time > 0) {
+  if (time > 10) {
     return null;
   } else if (!selfSocketId) {
     const newTime = time + 1;
@@ -168,13 +168,9 @@ const authorization = async (socket, next) => {
 
         if (!foundToken) {
           throw new CustomError('JsonWebTokenError', 'token is invalid');
-        } else if (foundToken.banned) {
-          throw new CustomError('JsonWebTokenError', 'token has expired');
         } else if (moment.utc(decoded.exp) < moment.utc()) {
           const newToken = await tokenHelper.getUserToken(user);
-          foundToken.update({
-            banned: true,
-          });
+          foundToken.destroy();
           socket.emit('authorized', {
             ok: true,
             token: newToken,
@@ -213,13 +209,9 @@ const authorization = async (socket, next) => {
 
         if (!foundToken) {
           throw new CustomError('JsonWebTokenError', 'token is invalid');
-        } else if (foundToken.banned) {
-          throw new CustomError('JsonWebTokenError', 'token has expired');
         } else if (moment.utc(decoded.exp) < moment.utc()) {
           const newToken = await tokenHelper.getOperatorToken(operator);
-          foundToken.update({
-            banned: true,
-          });
+          foundToken.destroy();
           socket.emit('authorized', {
             ok: true,
             token: newToken,
@@ -726,11 +718,6 @@ const getWebChatList = async (socket, payload, socketCallback) => {
         },
       }, {
         $unwind: '$chat',
-      // }, {
-      //   $group: {
-      //     _id: '$chat.id',
-      //     read: 'chat.read',
-      //   },
       }, {
         $project: {
           _id: '$_id',
@@ -747,13 +734,57 @@ const getWebChatList = async (socket, payload, socketCallback) => {
         },
       }]);
 
+      const result = await Promise.all(chatroom.map(async (value) => {
+        const request = await Requests.findOne({
+          attributes: ['id'],
+          where: {
+            id: {
+              [op.eq]: value.request.id,
+            },
+          },
+          include: [{
+            model: Carriers,
+            as: 'carrier',
+            attributes: ['id', 'name'],
+          }],
+        });
+        const user = await Users.findOne({
+          attributes: ['id', 'fullName', 'imagePath'],
+          where: {
+            id: {
+              [op.eq]: value.chat.data.userId,
+            },
+          },
+        });
+        const operator = await Operators.findOne({
+          attributes: ['id', 'fullName', 'imagePath'],
+          where: {
+            id: {
+              [op.eq]: value.chat.data.operatorId,
+            },
+          },
+        });
+        const temp = {
+          request: request.dataValues,
+          chat: {
+            _id: value.chat.data._id,
+            read: value.chat.read,
+            message: value.chat.data.message,
+            operator: operator.dataValues,
+            user: user.dataValues,
+            senderRoleId: value.chat.data.senderRoleId,
+            createdAt: value.chat.data.createdAt,
+          },
+        };
+        return temp;
+      }));
+
       socketCallback({
         ok: true,
-        data: chatroom,
+        data: result,
       });
     }
   } catch (err) {
-    console.log(err);
     socketCallback({
       ok: false,
       error: err,

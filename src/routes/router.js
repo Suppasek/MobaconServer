@@ -1,3 +1,4 @@
+const path = require('path');
 const npmRun = require('npm-run');
 const express = require('express');
 
@@ -71,6 +72,7 @@ router.get('/web/user/image/:imageName', imageController.getUserImage);
 router.get('/rollback', async (req, res) => {
   console.log('RUNNING ROLLBACK DATABASE');
   try {
+    await npmRun.execSync(`node ${path.join(__dirname, '../mock_up/seed.js')}`);
     await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all');
     await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:migrate');
     await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:seed:all');

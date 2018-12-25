@@ -5,6 +5,7 @@ const sequelize = require('sequelize');
 const randomString = require('random-string');
 const moment = require('moment');
 
+const config = require('../config/APIConfig');
 const twilioConfig = require('../config/TwilioConfig');
 
 const {
@@ -50,7 +51,7 @@ const sendChangePasswordSms = async (prefixPhoneNumber, phoneNumber, token) => {
     return false;
   }
 };
-const storeConfirmationCode = async (createdBy, time = 1) => {
+const storeConfirmationCode = async (createdBy, time = config.token.verification.mobile.time) => {
   const rawCode = await ramdomOtp();
   const user = await Users.findOne({
     where: {
@@ -77,11 +78,11 @@ const storeConfirmationCode = async (createdBy, time = 1) => {
 
   await ConfirmationCodes.create({
     code,
-    expired: moment.utc().add(time, 'minutes'),
+    expired: moment.utc().add(time, config.token.verification.mobile.unit),
     createdBy,
   });
 };
-const storeForgetPasswordCode = async (createdBy, time = 1) => {
+const storeForgetPasswordCode = async (createdBy, time = config.token.changePassword.mobile.time) => {
   const token = await uniqid(await uniqid.time()) + await uniqid(await uniqid.time());
 
   const user = await Users.findOne({
@@ -106,7 +107,7 @@ const storeForgetPasswordCode = async (createdBy, time = 1) => {
   }).then(() => {
     ForgetPasswordCodes.create({
       code: token,
-      expired: moment.utc().add(time, 'hours'),
+      expired: moment.utc().add(time, config.token.changePassword.mobile.unit),
       createdBy,
     });
   });

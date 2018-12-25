@@ -7,14 +7,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       type: DataTypes.STRING(500),
     },
-    banned: {
-      allowNull: false,
-      defaultValue: false,
-      validate: {
-        notEmpty: true,
-      },
-      type: DataTypes.BOOLEAN,
-    },
     createdBy: {
       allowNull: false,
       validate: {

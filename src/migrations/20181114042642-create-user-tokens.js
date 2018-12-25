@@ -11,11 +11,6 @@ module.exports = {
       allowNull: false,
       type: Sequelize.STRING(500),
     },
-    banned: {
-      allowNull: false,
-      defaultValue: false,
-      type: Sequelize.BOOLEAN,
-    },
     createdBy: {
       allowNull: false,
       references: { model: 'Users', key: 'id' },
