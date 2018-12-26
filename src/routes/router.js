@@ -29,6 +29,7 @@ router.patch('/web/plan/:planId', planController.updatePlan);
 router.get('/web/requests', requestController.getRequests);
 router.get('/web/request/bills/:userId', requestController.getBillByUserId);
 router.get('/web/request/review/:userId', requestController.getReviewByUserId);
+router.get('/web/request/chat/:userId', requestController.getChatHistoryByUserId);
 router.get('/web/requests/accepted', requestController.getAcceptedRequests);
 router.get('/web/request/:requestId', requestController.getRequestById);
 router.patch('/web/request/:requestId/acceptance', requestController.requestAcceptance);
@@ -49,8 +50,6 @@ router.patch('/mobile/request/review/:requestId/dislike', requestController.disl
 router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 
 // API ROUTING FOR USER VERIFICATION WITH EMAIL
-router.get('/confirm', authController.getVerifyWithConfirmationTokenPage);
-
 router.post('/web/verification', authController.sendVerificationEmail);
 router.patch('/web/verification', authController.verifyWithConfirmationToken);
 router.post('/web/changePassword', authController.sendChangePasswordEmail);

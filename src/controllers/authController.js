@@ -388,9 +388,6 @@ const mobileChangePassword = async (req, res) => {
 };
 
 // USER VERIFICATION WITH EMAIL
-const getVerifyWithConfirmationTokenPage = async (req, res) => {
-  res.sendFile(path.join(__dirname, './templates/confirmationPage.html'));
-};
 const sendVerificationEmail = async (req, res) => {
   passportService.webJwtAuthorize(req, res, (operator) => {
     validationHelper.bodyValidator(req, res, ['userId'], async (body) => {
@@ -713,7 +710,6 @@ module.exports = {
   mobileLogout,
   mobileChangePassword,
 
-  getVerifyWithConfirmationTokenPage, // TEMPORARILY USED
   sendVerificationEmail,
   verifyWithConfirmationToken,
   sendChangePasswordEmail,
