@@ -24,7 +24,7 @@ router.patch('/web/operator/activation/:userId', authController.activateOperator
 router.patch('/web/operator/password', authController.changePassword);
 
 router.get('/web/plans', planController.getPlans);
-router.patch('/web/plan/:planId', planController.updatePlan);
+router.patch('/web/plan/basic', planController.updatePlan);
 
 router.get('/web/requests', requestController.getRequests);
 router.get('/web/request/bills/:userId', requestController.getBillByUserId);

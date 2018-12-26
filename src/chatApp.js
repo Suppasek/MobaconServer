@@ -91,7 +91,7 @@ const storeSocketId = async (socketId, user) => {
   });
 };
 const storeChat = async (messageId, userId, operatorId, message, senderRoleId) => {
-  await ChatRoomSchema.update({
+  await ChatRoomSchema.updateOne({
     messageId,
   }, {
     updatedAt: moment.utc(),
@@ -234,6 +234,30 @@ const authorization = async (socket, next) => {
       socket.disconnect();
     }
   });
+};
+const mobileCheckPlansToChat = async (userId) => {
+  try {
+    const foundUser = await Users.findOne({
+      attributes: [],
+      where: {
+        id: {
+          [op.eq]: userId,
+        },
+      },
+      include: [{
+        model: Plans,
+        as: 'plan',
+      }],
+    });
+
+    if (!foundUser.plan.dataValues) return false;
+    else if (!foundUser.plan.dataValues.chatEnabled) return false;
+    else if (moment.utc(foundUser.plan.dataValues.startAt) > moment.utc()) return false;
+    else if (moment.utc(foundUser.plan.dataValues.endAt) < moment.utc()) return false;
+    else return true;
+  } catch (err) {
+    return false;
+  }
 };
 const payloadValidator = async (socketCallback, payload, keys, next) => {
   const required = [];
@@ -410,6 +434,7 @@ const mobileChat = async (io, socket, payload, socketCallback) => {
     const foundSocketId = await getSelfSocket(socket.id);
 
     if (foundSocketId.roleId !== constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat');
+    else if (!await mobileCheckPlansToChat(foundSocketId.userId)) throw new CustomError('ChatError', 'forbidden for chat, upgrade to pro to use this feature');
     else {
       const lastRequest = await Requests.findOne({
         where: {
@@ -517,6 +542,7 @@ const getMobileOldChat = async (socket, payload, socketCallback) => {
     const foundSocketId = await getSelfSocket(socket.id);
 
     if (foundSocketId.roleId !== constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat');
+    else if (!await mobileCheckPlansToChat(foundSocketId.userId)) throw new CustomError('ChatError', 'forbidden for chat, upgrade to pro to use this feature');
     else {
       const lastRequest = await Requests.findOne({
         where: {
@@ -791,6 +817,13 @@ const getWebChatList = async (socket, payload, socketCallback) => {
     });
   }
 };
+const updateReadStatus = async (socket, payload, socketCallback) => {
+  try {
+
+  } catch (err) {
+
+  }
+};
 
 module.exports = (server) => {
   // clear();
@@ -814,6 +847,9 @@ module.exports = (server) => {
         }))
         .on('web-chat-list', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChatList'], () => {
           getWebChatList(socket, payload, socketCallback);
+        }))
+        .on('web-read-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['requestId'], () => {
+          updateReadStatus(socket, payload, socketCallback);
         }))
         .on('disconnect', () => removeSocketId(socket.id));
     });
