@@ -10,6 +10,7 @@ const {
   Offers,
   Plans,
 } = require('../models');
+const ChatRoomSchema = require('../mongoSchema/chatRoomSchema');
 const constant = require('../config/APIConstant');
 const billSchema = require('../mongoSchema/billSchema');
 const passportService = require('./services/passportService');
@@ -664,6 +665,97 @@ const dislikeReviewByRequestId = (req, res) => {
     });
   });
 };
+const getChatHistoryByUserId = (req, res) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(req, res, operator, newToken, async () => {
+      try {
+        const chatHistory = await ChatRoomSchema.aggregate([{
+          $match: {
+            userId: (Number)(req.params.userId),
+          },
+        }, {
+          $sort: {
+            createdAt: -1,
+          },
+        }, {
+          $lookup: {
+            from: 'chatmessages',
+            localField: 'messageId',
+            foreignField: '_id',
+            as: 'chat',
+          },
+        }, {
+          $unwind: '$chat',
+        }, {
+          $project: {
+            _id: '$_id',
+            request: {
+              id: '$requestId',
+            },
+            chat: {
+              _id: '$chat.id',
+              data: {
+                $arrayElemAt: ['$chat.data', -1],
+              },
+            },
+          },
+        }]);
+
+        const result = await Promise.all(chatHistory.map(async (value) => {
+          const request = await Requests.findOne({
+            attributes: ['id'],
+            where: {
+              id: {
+                [op.eq]: value.request.id,
+              },
+            },
+            include: [{
+              model: Carriers,
+              as: 'carrier',
+              attributes: ['id', 'name'],
+            }],
+          });
+          const foundOperator = await Operators.findOne({
+            attributes: ['id', 'fullName', 'imagePath'],
+            where: {
+              id: {
+                [op.eq]: value.chat.data.operatorId,
+              },
+            },
+          });
+          const temp = {
+            request: request.dataValues,
+            chat: {
+              _id: value.chat.data._id,
+              read: value.chat.read,
+              message: value.chat.data.message,
+              operator: foundOperator.dataValues,
+              senderRoleId: value.chat.data.senderRoleId,
+              createdAt: value.chat.data.createdAt,
+            },
+          };
+          return temp;
+        }));
+
+        res.status(200).json({
+          data: result,
+        });
+      } catch (err) {
+        if (err.errors) {
+          res.status(400).json({
+            token: newToken,
+            message: err.errors[0].message,
+          });
+        } else {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      }
+    });
+  });
+};
 
 module.exports = {
   getRequests,
@@ -674,6 +766,7 @@ module.exports = {
   createRequestReviewById,
   getBillByUserId,
   getReviewByUserId,
+  getChatHistoryByUserId,
   getReviewByRequestId,
   likeReviewByRequestId,
   dislikeReviewByRequestId,

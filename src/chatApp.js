@@ -793,12 +793,11 @@ const getWebChatList = async (socket, payload, socketCallback) => {
 };
 
 module.exports = (server) => {
-  clear();
+  // clear();
   clearSockets();
   const io = socketio(server);
 
   io.on('connection', async (socket) => {
-    socket.emit('chat', { message: socket.id });
     await authorization(socket, async () => {
       socket
         .on('mobile-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['text'], () => {
