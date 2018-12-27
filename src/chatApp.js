@@ -852,6 +852,45 @@ const updateReadStatus = async (socket, payload, socketCallback) => {
     });
   }
 };
+const getCountOfUnreadMessage = async (socket, payload, socketCallback) => {
+  try {
+    const selfSocketId = await SocketSchema.findOne({
+      socketId: socket.id,
+    });
+
+    if (selfSocketId.roleId === constant.ROLE.USER) throw new Error('ChatError', 'forbidden for this function');
+    else {
+      const result = await ChatRoomSchema.aggregate([{
+        $lookup: {
+          from: 'chatmessages',
+          localField: 'messageId',
+          foreignField: '_id',
+          as: 'chat',
+        },
+      }, {
+        $unwind: '$chat',
+      }, {
+        $match: {
+          operatorId: selfSocketId.userId,
+          messageId: {
+            $ne: null,
+          },
+          'chat.read.operator': false,
+        },
+      }]);
+
+      socketCallback({
+        ok: true,
+        data: result.length,
+      });
+    }
+  } catch (err) {
+    socketCallback({
+      ok: false,
+      error: err,
+    });
+  }
+};
 
 module.exports = (server) => {
   // clear();
@@ -879,6 +918,7 @@ module.exports = (server) => {
         .on('web-read-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['requestId'], () => {
           updateReadStatus(socket, payload, socketCallback);
         }))
+        .on('web-count-unread-chat', (payload, socketCallback) => getCountOfUnreadMessage(socket, payload, socketCallback))
         .on('disconnect', () => removeSocketId(socket.id));
     });
   });
