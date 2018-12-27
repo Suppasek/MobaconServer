@@ -39,47 +39,47 @@ class CustomError extends Error {
 }
 
 // METHODS
-const clear = async () => {
-  await ChatRoomSchema.deleteMany({});
-  await ChatMessageSchema.deleteMany({});
-  const chatMessage = await ChatMessageSchema.insertMany([{
-    data: [{
-      message: '1',
-      userId: 1,
-      operatorId: 1,
-      senderRoleId: 3,
-    }, {
-      message: '2',
-      userId: 1,
-      operatorId: 1,
-      senderRoleId: 1,
-    }],
-  }, {
-    data: [{
-      message: '1',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-    }, {
-      message: '2',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-    }],
-  }]);
+// const clear = async () => {
+//   await ChatRoomSchema.deleteMany({});
+//   await ChatMessageSchema.deleteMany({});
+//   const chatMessage = await ChatMessageSchema.insertMany([{
+//     data: [{
+//       message: '1',
+//       userId: 1,
+//       operatorId: 1,
+//       senderRoleId: 3,
+//     }, {
+//       message: '2',
+//       userId: 1,
+//       operatorId: 1,
+//       senderRoleId: 1,
+//     }],
+//   }, {
+//     data: [{
+//       message: '1',
+//       userId: 13,
+//       operatorId: 1,
+//       senderRoleId: 3,
+//     }, {
+//       message: '2',
+//       userId: 13,
+//       operatorId: 1,
+//       senderRoleId: 1,
+//     }],
+//   }]);
 
-  await ChatRoomSchema.create([{
-    userId: 1,
-    operatorId: 1,
-    requestId: 12,
-    messageId: chatMessage[0]._id,
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 11,
-    messageId: chatMessage[1]._id,
-  }]);
-};
+//   await ChatRoomSchema.create([{
+//     userId: 1,
+//     operatorId: 1,
+//     requestId: 12,
+//     messageId: chatMessage[0]._id,
+//   }, {
+//     userId: 13,
+//     operatorId: 1,
+//     requestId: 11,
+//     messageId: chatMessage[1]._id,
+//   }]);
+// };
 const clearSockets = async () => {
   await SocketSchema.deleteMany({});
 };
