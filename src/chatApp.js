@@ -819,9 +819,37 @@ const getWebChatList = async (socket, payload, socketCallback) => {
 };
 const updateReadStatus = async (socket, payload, socketCallback) => {
   try {
+    const selfSocketId = await SocketSchema.findOne({
+      socketId: socket.id,
+    });
 
+    if (selfSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for this fuction');
+    else {
+      const chatroom = await ChatRoomSchema.findOne({
+        operatorId: selfSocketId.userId,
+        requestId: payload.requestId,
+      });
+
+      if (!chatroom.messageId) throw new CustomError('ChatError', 'forbidden for this function, chatroom has not created');
+      else {
+        await ChatMessageSchema.updateOne({
+          _id: chatroom.messageId,
+        }, {
+          $set: {
+            'read.operator': true,
+          },
+        });
+
+        socketCallback({
+          ok: true,
+        });
+      }
+    }
   } catch (err) {
-
+    socketCallback({
+      ok: false,
+      error: err,
+    });
   }
 };
 
