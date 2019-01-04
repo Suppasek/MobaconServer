@@ -40,6 +40,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       type: DataTypes.STRING(255),
     },
+    family: {
+      validate: {
+        notEmpty: true,
+      },
+      type: DataTypes.INTEGER,
+    },
     verified: {
       allowNull: false,
       defaultValue: false,

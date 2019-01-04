@@ -42,6 +42,7 @@ router.post('/mobile/login', authController.mobileLogin);
 router.post('/mobile/logout', authController.mobileLogout);
 router.patch('/mobile/user', userController.editUser);
 router.patch('/mobile/user/password', authController.mobileChangePassword);
+router.patch('/mobile/user/family', planController.updateFamily);
 
 router.get('/mobile/request/review', requestController.getReviewByRequestId);
 router.patch('/mobile/request/review/:requestId/like', requestController.likeReviewByRequestId);
