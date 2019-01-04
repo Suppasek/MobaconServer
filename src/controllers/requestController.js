@@ -257,6 +257,12 @@ const requestAcceptance = (req, res) => {
             status: 'Accepted',
           });
 
+          await ChatRoomSchema.create([{
+            userId: request.userId,
+            operatorId: operator.id,
+            requestId: request.id,
+          }]);
+
           res.status(200).json({
             token: newToken,
             message: 'accept request successfully',
