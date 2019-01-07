@@ -4,11 +4,10 @@ const morgan = require('morgan');
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const timeout = require('connect-timeout');
 
-const chatSocket = require('./chatApp');
 const config = require('./config/APIConfig');
 const mongoConfig = require('./config/MongoConfig');
+const socket = require('./controllers/services/socketService');
 const router = require('./routes/router').Router;
 
 const app = express()
@@ -16,8 +15,7 @@ const app = express()
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
   .use(morgan())
-  .use('/mobacon/api/', router)
-  .use(timeout(12000000));
+  .use('/mobacon/api/', router);
 
 mongoose.connect(mongoConfig.mongoUri, {
   useNewUrlParser: true,
@@ -30,8 +28,4 @@ const httpServer = http.createServer(app).listen(config.httpPort, () => {
   console.log(`Start http server at\t ${config.baseUrl}:${config.httpPort}`);
 });
 
-const io = chatSocket(httpServer);
-
-module.exports = {
-  io,
-};
+socket.chat(httpServer);

@@ -73,8 +73,10 @@ const getTotalInformation = async () => {
     user: result[0] || 0,
     request: result[1] || 0,
     chat: result[2] || 0,
-    good: result[3] || 0,
-    bad: result[4] || 0,
+    goodness: {
+      good: result[3] || 0,
+      bad: result[4] || 0,
+    },
   };
 };
 

@@ -50,4 +50,16 @@ module.exports = {
       },
     },
   },
+  notification: {
+    acceptance: {
+      type: 'Acceptance',
+      title: 'Request is accepted.',
+      body: 'Your request is accepted now.',
+    },
+    review: {
+      type: 'Review',
+      title: 'Request is reviewed.',
+      body: 'Your request is reviewed now.',
+    },
+  },
 };
