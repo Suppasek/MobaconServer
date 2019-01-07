@@ -1,7 +1,7 @@
 const moment = require('moment');
 const Sequelize = require('sequelize');
 
-const { Users, Plans } = require('../models');
+const { Plans } = require('../models');
 const constant = require('../config/APIConstant');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
@@ -108,6 +108,7 @@ const updateFamily = async (req, res) => {
             });
 
             res.status(200).json({
+              token: newToken,
               message: 'update family successfully',
             });
           }
