@@ -6,11 +6,11 @@ const socketio = require('socket.io');
 const sequelize = require('sequelize');
 const { forEach } = require('p-iteration');
 
-const apiConfig = require('./config/APIConfig');
-const constant = require('./config/APIConstant');
-const tokenHelper = require('./helpers/tokenHelper');
+const apiConfig = require('../../config/APIConfig');
+const constant = require('../../config/APIConstant');
+const tokenHelper = require('../../helpers/tokenHelper');
 
-const secret = fs.readFileSync(path.join(__dirname, './config/secret.key'));
+const secret = fs.readFileSync(path.join(__dirname, '../../config/secret.key'));
 
 const {
   Roles,
@@ -21,13 +21,15 @@ const {
   Requests,
   Plans,
   Carriers,
-} = require('./models');
-const SocketSchema = require('./mongoSchema/socketSchema');
-const ChatRoomSchema = require('./mongoSchema/chatRoomSchema');
-const ChatMessageSchema = require('./mongoSchema/chatMessageSchema');
+} = require('../../models');
+const SocketSchema = require('../../mongoSchema/socketSchema');
+const ChatRoomSchema = require('../../mongoSchema/chatRoomSchema');
+const ChatMessageSchema = require('../../mongoSchema/chatMessageSchema');
 
 const op = sequelize.Op;
 apiConfig.secret = secret;
+
+let IO;
 
 // ClASSES
 class CustomError extends Error {
@@ -38,7 +40,7 @@ class CustomError extends Error {
   }
 }
 
-// METHODS
+// METHODS FOR CHAT
 // const clear = async () => {
 //   await ChatRoomSchema.deleteMany({});
 //   await ChatMessageSchema.deleteMany({});
@@ -892,22 +894,44 @@ const getCountOfUnreadMessage = async (socket, payload, socketCallback) => {
   }
 };
 
-module.exports = (server) => {
+// MOTHODS FOR NOTIFICATION
+const getUserSocketId = async (userId) => {
+  try {
+    const socketIds = (await SocketSchema.find({
+      userId,
+      roleId: constant.ROLE.USER,
+    })).map((e) => e.socketId);
+
+    return socketIds;
+  } catch (err) {
+    return err;
+  }
+};
+const sendNotification = async (data, userId) => {
+  const socketIds = await getUserSocketId(userId);
+
+  forEach(socketIds, (socketId) => {
+    IO.sockets.connected[socketId].emit('notification', data);
+  });
+};
+
+// SERVER
+const chatServer = (server) => {
   // clear();
   clearSockets();
-  const io = socketio(server);
+  IO = socketio(server);
 
-  io.on('connection', async (socket) => {
+  IO.on('connection', async (socket) => {
     await authorization(socket, async () => {
       socket
         .on('mobile-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['text'], () => {
-          mobileChat(io, socket, payload, socketCallback);
+          mobileChat(IO, socket, payload, socketCallback);
         }))
         .on('mobile-old-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChat'], () => {
           getMobileOldChat(socket, payload, socketCallback);
         }))
         .on('web-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['text', 'requestId'], () => {
-          webChat(io, socket, payload, socketCallback);
+          webChat(IO, socket, payload, socketCallback);
         }))
         .on('web-old-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChat', 'requestId'], () => {
           getWebOldChat(socket, payload, socketCallback);
@@ -922,6 +946,9 @@ module.exports = (server) => {
         .on('disconnect', () => removeSocketId(socket.id));
     });
   });
+};
 
-  return io;
+module.exports = {
+  chat: chatServer,
+  sendNotification,
 };

@@ -19,6 +19,7 @@ const {
   Operators,
   Users,
   Plans,
+  OperatorTokens,
   ConfirmationTokens,
   ForgetPasswordTokens,
   ForgetPasswordCodes,
@@ -222,12 +223,26 @@ const activateOperator = async (req, res) => {
           },
         });
 
-        if (foundOperator.id === operator.id) {
+        if (!foundOperator) {
+          res.status(400).json({
+            token: newToken,
+            message: 'user not found',
+          });
+        } else if (foundOperator.id === operator.id) {
           res.status(400).json({
             token: newToken,
             message: 'cannot activate or deactivate yourself',
           });
         } else if (foundOperator) {
+          if (!foundOperator.activated) {
+            await OperatorTokens.destroy({
+              where: {
+                createdBy: {
+                  [op.eq]: foundOperator.id,
+                },
+              },
+            });
+          }
           foundOperator.update({
             activated: !foundOperator.activated,
           }).then(() => {
@@ -235,11 +250,6 @@ const activateOperator = async (req, res) => {
               token: newToken,
               message: !foundOperator.activated ? 'deactivated operator successfully' : 'activated operator successfully',
             });
-          });
-        } else {
-          res.status(400).json({
-            token: newToken,
-            message: 'user not found',
           });
         }
       } catch (err) {
