@@ -92,8 +92,39 @@ const updatePlan = async (req, res) => {
     });
   });
 };
+const updateFamily = async (req, res) => {
+  passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
+    validationHelper.userValidator(req, res, user, newToken, async () => {
+      validationHelper.bodyValidator(req, res, [['family', 'number']], async () => {
+        try {
+          if (user.roleId !== constant.PLAN.PREMIUM) {
+            res.status(403).json({
+              token: newToken,
+              message: 'cannot update family, upgrade to pro',
+            });
+          } else {
+            await user.update({
+              family: req.body.family,
+            });
+
+            res.status(200).json({
+              token: newToken,
+              message: 'update family successfully',
+            });
+          }
+        } catch (err) {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      });
+    });
+  });
+};
 
 module.exports = {
   getPlans,
   updatePlan,
+  updateFamily,
 };

@@ -8,6 +8,7 @@ const userController = require('../controllers/userController');
 const imageController = require('../controllers/imageController');
 const requestController = require('../controllers/requestController');
 const operatorController = require('../controllers/operatorController');
+const dashboardController = require('../controllers/dashboardController');
 const reportHistoryController = require('../controllers/reportHistoryController');
 
 const router = express.Router();
@@ -36,12 +37,18 @@ router.patch('/web/request/:requestId/acceptance', requestController.requestAcce
 router.put('/web/request/:requestId/memo', requestController.putRequestMemoById);
 router.post('/web/request/:requestId/review', requestController.createRequestReviewById);
 
+router.get('/web/dashboard/user', dashboardController.getUserForDashboard);
+router.get('/web/dashboard/request', dashboardController.getRequestForDashboard);
+router.get('/web/dashboard/chat', dashboardController.getChatForDashboard);
+router.get('/web/dashboard/goodrate', dashboardController.getGoodRateForDashboard);
+
 // API ROUTING FOR MOBILE APPLICATION
 router.post('/mobile/signup', authController.mobileSignup);
 router.post('/mobile/login', authController.mobileLogin);
 router.post('/mobile/logout', authController.mobileLogout);
 router.patch('/mobile/user', userController.editUser);
 router.patch('/mobile/user/password', authController.mobileChangePassword);
+router.patch('/mobile/user/family', planController.updateFamily);
 
 router.get('/mobile/request/review', requestController.getReviewByRequestId);
 router.patch('/mobile/request/review/:requestId/like', requestController.likeReviewByRequestId);
