@@ -64,6 +64,10 @@ router.patch('/web/verification', authController.verifyWithConfirmationToken);
 router.post('/web/changePassword', authController.sendChangePasswordEmail);
 router.patch('/web/changePassword', authController.changePasswordwithChangePasswordToken);
 
+// API ROUTING FOR VALIDATE IN APP PURCHASE
+router.patch('/mobile/iap/apple');
+router.patch('/mobile/iap/google');
+
 // API ROUTING FOR USER VERIFICATION WITH OTP
 router.post('/mobile/user/verification', authController.sendVerificationOTP);
 router.patch('/mobile/user/verification', authController.verifyUserWithOTP);

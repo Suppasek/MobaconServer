@@ -648,6 +648,10 @@ const sendChangePasswordSms = (req, res) => {
         res.status(400).json({
           message: 'user not found',
         });
+      } else if (!user.verified) {
+        res.status(403).json({
+          message: 'account has not verified',
+        });
       } else {
         otpHelper.storeForgetPasswordCode(user.id);
         res.status(200).json({
