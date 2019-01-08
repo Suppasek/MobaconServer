@@ -50,26 +50,31 @@ const clear = async () => {
       userId: 13,
       operatorId: 1,
       senderRoleId: 3,
+      createdAt: '2019-01-08 00:00:01',
     }, {
       message: 'can you help me?',
       userId: 13,
       operatorId: 1,
       senderRoleId: 3,
+      createdAt: '2019-01-08 00:00:02',
     }, {
       message: 'hi',
       userId: 13,
       operatorId: 1,
       senderRoleId: 1,
+      createdAt: '2019-01-08 00:00:03',
     }, {
       message: 'yes i can',
       userId: 13,
       operatorId: 1,
       senderRoleId: 1,
+      createdAt: '2019-01-08 00:00:04',
     }, {
       message: 'thank you',
       userId: 13,
       operatorId: 1,
       senderRoleId: 3,
+      createdAt: '2019-01-08 00:00:05',
     }],
   }]);
 
