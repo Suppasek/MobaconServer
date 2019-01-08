@@ -43,7 +43,7 @@ const sendChangePasswordSms = async (prefixPhoneNumber, phoneNumber, token) => {
     twilioClient.messages.create({
       to: `${prefixPhoneNumber}${phoneNumber.slice(1)}`,
       from: twilioConfig.phoneNumer,
-      body: `You can change your password on website, click http://mobacon-web.pieros.site/user/changePassword?changePasswordCode=${token}
+      body: `You can change your password on website, click http://mobacon-web.pieros.site/user/resetPassword?token=${token}
       `,
     });
     return true;
