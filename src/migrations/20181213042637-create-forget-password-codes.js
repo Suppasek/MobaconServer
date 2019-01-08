@@ -1,5 +1,5 @@
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('forgetPasswordCodes', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('ForgetPasswordCodes', {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -29,5 +29,5 @@ module.exports = {
       type: Sequelize.DATE,
     },
   }),
-  down: (queryInterface) => queryInterface.dropTable('forgetPasswordCodes'),
+  down: (queryInterface) => queryInterface.dropTable('ForgetPasswordCodes'),
 };
