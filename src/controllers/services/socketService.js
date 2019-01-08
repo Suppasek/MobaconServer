@@ -286,7 +286,7 @@ const payloadValidator = async (socketCallback, payload, keys, next) => {
     });
   }
 };
-const sendChatToOperator = async (io, requestId, operatorId, userId, chat) => {
+const sendChatToOperator = async (io, requestId, operatorId, userId, chat, newChatroom) => {
   const operatorSocketIds = await SocketSchema.find({
     userId: operatorId,
     $or: [{
@@ -318,6 +318,7 @@ const sendChatToOperator = async (io, requestId, operatorId, userId, chat) => {
   forEach(operatorSocketIds, (targetSocketId) => {
     io.sockets.connected[targetSocketId.socketId].emit('mobile-chat', {
       ok: true,
+      newChatroom,
       data: {
         _id: chat._id,
         message: chat.message,
@@ -466,6 +467,8 @@ const mobileChat = async (io, socket, payload, socketCallback) => {
       else if (!lastRequest.operatorId) throw new CustomError('ChatError', 'request is not accept');
       else {
         let storedChat;
+        let newChatroom = false;
+
         const chatroom = await ChatRoomSchema.findOne({
           userId: foundSocketId.userId,
           operatorId: lastRequest.operatorId,
@@ -483,6 +486,7 @@ const mobileChat = async (io, socket, payload, socketCallback) => {
             messageId: newChatMessage.id,
           });
           storedChat = await storeChat(newChatMessage.id, foundSocketId.userId, lastRequest.operatorId, payload.text, constant.ROLE.USER);
+          newChatroom = true;
         } else {
           storedChat = await storeChat(chatroom.messageId, foundSocketId.userId, lastRequest.operatorId, payload.text, constant.ROLE.USER);
         }
@@ -500,7 +504,7 @@ const mobileChat = async (io, socket, payload, socketCallback) => {
         socketCallback({
           ok: true,
         });
-        sendChatToOperator(io, lastRequest.id, lastRequest.operatorId, foundSocketId.userId, storedChat);
+        sendChatToOperator(io, lastRequest.id, lastRequest.operatorId, foundSocketId.userId, storedChat, newChatroom);
         sendMobileSelfChat(io, lastRequest.id, lastRequest.operatorId, foundSocketId.userId, storedChat, foundSocketId.socketId);
       }
     }
