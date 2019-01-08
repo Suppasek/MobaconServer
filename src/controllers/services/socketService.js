@@ -262,6 +262,14 @@ const mobileCheckPlansToChat = async (userId) => {
   }
 };
 const payloadValidator = async (socketCallback, payload, keys, next) => {
+  if (!socketCallback) return;
+  else if (typeof payload !== 'object') {
+    socketCallback({
+      ok: false,
+      message: 'do not forget parameter!!',
+    });
+    return;
+  }
   const required = [];
   await forEach(keys, (key) => {
     if (payload[key] === undefined) {
