@@ -141,7 +141,7 @@ module.exports = {
   }, {
     id: 13,
     roleId: 3,
-    planId: 1,
+    planId: 2,
     fullName: 'Mobacon M. Test',
     phoneNumber: '0800000013',
     password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
