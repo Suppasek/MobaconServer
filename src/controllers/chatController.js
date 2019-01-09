@@ -146,10 +146,6 @@ const getOldChatByChatRoomId = (req, res) => {
             'data.createdAt': -1,
           },
         }, {
-          $skip: (Number)(req.params.existChat),
-        }, {
-          $limit: config.chat.loadOldChat,
-        }, {
           $group: {
             _id: '$_id',
             data: {
@@ -175,6 +171,10 @@ const getOldChatByChatRoomId = (req, res) => {
           $match: {
             _id: mongooseTypes.ObjectId(req.params.chatroomId),
           },
+        }, {
+          $skip: (Number)(req.params.existChat),
+        }, {
+          $limit: config.chat.loadOldChat,
         }]);
 
         res.status(200).json({
