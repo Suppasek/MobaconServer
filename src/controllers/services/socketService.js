@@ -816,11 +816,9 @@ const getMobileOldChat = async (socket, payload, socketCallback) => {
             $match: {
               _id: chatroom.messageId,
             },
-          }, {
-            $skip: payload.existChat,
-          }, {
-            $limit: apiConfig.chat.loadOldChat,
           }]);
+
+          result[0].data = result[0].data.slice(payload.existChat, payload.existChat + apiConfig.chat.loadOldChat);
 
           socketCallback({
             ok: true,
@@ -903,11 +901,9 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
             $match: {
               _id: chatroom.messageId,
             },
-          }, {
-            $skip: payload.existChat,
-          }, {
-            $limit: apiConfig.chat.loadOldChat,
           }]);
+
+          result[0].data = result[0].data.slice(payload.existChat, payload.existChat + apiConfig.chat.loadOldChat);
 
           socketCallback({
             ok: true,
@@ -941,6 +937,10 @@ const getWebChatList = async (socket, payload, socketCallback) => {
           updatedAt: -1,
         },
       }, {
+        $skip: payload.existChatList,
+      }, {
+        $limit: apiConfig.chat.loadOldChat,
+      }, {
         $lookup: {
           from: 'chatmessages',
           localField: 'messageId',
@@ -963,10 +963,6 @@ const getWebChatList = async (socket, payload, socketCallback) => {
             },
           },
         },
-      }, {
-        $skip: payload.existChatList,
-      }, {
-        $limit: apiConfig.chat.loadOldChat,
       }]);
 
       const result = await Promise.all(chatroom.map(async (value) => {

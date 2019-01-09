@@ -171,11 +171,9 @@ const getOldChatByChatRoomId = (req, res) => {
           $match: {
             _id: mongooseTypes.ObjectId(req.params.chatroomId),
           },
-        }, {
-          $skip: (Number)(req.params.existChat),
-        }, {
-          $limit: config.chat.loadOldChat,
         }]);
+
+        result[0].data = result[0].data.slice((Number)(req.params.existChat), (Number)(req.params.existChat) + config.chat.loadOldChat);
 
         res.status(200).json({
           token: newToken,
