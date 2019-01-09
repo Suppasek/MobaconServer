@@ -16,7 +16,7 @@ module.exports = {
     port: 80,
   },
   chat: {
-    loadOldChat: 10,
+    loadOldChat: 15,
   },
   jwt: {
     web: {
