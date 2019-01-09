@@ -110,6 +110,7 @@ router.get('/test/notification/acceptance/:userId', async (req, res) => {
       title: config.notification.acceptance.title,
       body: config.notification.acceptance.body,
     }, req.params.userId);
+    res.send('success');
   } catch (err) {
     res.send(err);
   }
@@ -127,6 +128,7 @@ router.get('/test/notification/review/:userId', async (req, res) => {
         createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
       },
     }, req.params.userId);
+    res.send('success');
   } catch (err) {
     res.send(err);
   }
