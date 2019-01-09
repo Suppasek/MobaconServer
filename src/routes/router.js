@@ -1,4 +1,5 @@
 const path = require('path');
+const moment = require('moment');
 const npmRun = require('npm-run');
 const express = require('express');
 
@@ -11,6 +12,9 @@ const requestController = require('../controllers/requestController');
 const operatorController = require('../controllers/operatorController');
 const dashboardController = require('../controllers/dashboardController');
 const reportHistoryController = require('../controllers/reportHistoryController');
+
+const config = require('../config/APIConfig');
+const notificationService = require('../controllers/services/socketService');
 
 const router = express.Router();
 
@@ -96,6 +100,35 @@ router.get('/rollback', async (req, res) => {
   } catch (err) {
     console.log('ROLLBACK FAILED', err);
     res.send('rollback database failed');
+  }
+});
+// TEST  NOTIFICATION
+router.get('/test/notification/acceptance/:userId', async (req, res) => {
+  try {
+    await notificationService.sendNotification({
+      type: config.notification.acceptance.type,
+      title: config.notification.acceptance.title,
+      body: config.notification.acceptance.body,
+    }, req.params.userId);
+  } catch (err) {
+    res.send(err);
+  }
+});
+router.get('/test/notification/review/:userId', async (req, res) => {
+  try {
+    await notificationService.sendNotification({
+      type: config.notification.review.type,
+      title: config.notification.review.title,
+      body: config.notification.review.body,
+      data: {
+        id: 111,
+        review: 'test review for notification mock up',
+        suggestion: 'test suggestion for notification mock up',
+        createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+      },
+    }, req.params.userId);
+  } catch (err) {
+    res.send(err);
   }
 });
 
