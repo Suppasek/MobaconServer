@@ -925,7 +925,7 @@ const getWebChatList = async (socket, payload, socketCallback) => {
 
     if (selfSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat list');
     else {
-      const chatroom = await ChatRoomSchema.aggregate([{
+      let chatroom = await ChatRoomSchema.aggregate([{
         $match: {
           operatorId: selfSocketId.userId,
           messageId: {
@@ -936,10 +936,6 @@ const getWebChatList = async (socket, payload, socketCallback) => {
         $sort: {
           updatedAt: -1,
         },
-      }, {
-        $skip: payload.existChatList,
-      }, {
-        $limit: apiConfig.chat.loadOldChat,
       }, {
         $lookup: {
           from: 'chatmessages',
@@ -964,6 +960,8 @@ const getWebChatList = async (socket, payload, socketCallback) => {
           },
         },
       }]);
+
+      chatroom = chatroom.slice(payload.existChatList, payload.existChatList + apiConfig.chat.loadOldChat);
 
       const result = await Promise.all(chatroom.map(async (value) => {
         const request = await Requests.findOne({
