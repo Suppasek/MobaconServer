@@ -50,6 +50,132 @@ const clear = async () => {
       userId: 13,
       operatorId: 1,
       senderRoleId: 3,
+      createdAt: '2018-04-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-04-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-05-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-05-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-06-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-06-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-07-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-07-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-08-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-08-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-09-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-09-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-10-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-10-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-11-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-11-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-12-08 00:00:01',
+    }, {
+      message: 'hi',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-12-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 13,
+      operatorId: 1,
+      senderRoleId: 3,
       createdAt: '2019-01-08 00:00:01',
     }, {
       message: 'can you help me?',
@@ -81,8 +207,63 @@ const clear = async () => {
   await ChatRoomSchema.create([{
     userId: 13,
     operatorId: 1,
-    requestId: 11,
+    requestId: 1,
     messageId: chatMessage[0]._id,
+    createdAt: moment.utc('2018-04-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 2,
+    messageId: chatMessage[1]._id,
+    createdAt: moment.utc('2018-05-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 3,
+    messageId: chatMessage[2]._id,
+    createdAt: moment.utc('2018-06-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 4,
+    messageId: chatMessage[3]._id,
+    createdAt: moment.utc('2018-07-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 5,
+    messageId: chatMessage[4]._id,
+    createdAt: moment.utc('2018-08-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 6,
+    messageId: chatMessage[5]._id,
+    createdAt: moment.utc('2018-09-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 7,
+    messageId: chatMessage[6]._id,
+    createdAt: moment.utc('2018-10-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 8,
+    messageId: chatMessage[7]._id,
+    createdAt: moment.utc('2018-11-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 9,
+    messageId: chatMessage[8]._id,
+    createdAt: moment.utc('2018-12-07 10:00:00'),
+  }, {
+    userId: 13,
+    operatorId: 1,
+    requestId: 11,
+    messageId: chatMessage[9]._id,
+    createdAt: moment.utc('2019-01-07 10:00:00'),
   }]);
 };
 const clearSockets = async () => {
