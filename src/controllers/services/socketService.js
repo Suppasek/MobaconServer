@@ -772,108 +772,6 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
     });
   }
 };
-const getWebChatList = async (socket, payload, socketCallback) => {
-  try {
-    const selfSocketId = await getSelfSocket(socket.id);
-
-    if (selfSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat list');
-    else {
-      let chatroom = await ChatRoomSchema.aggregate([{
-        $match: {
-          activated: true,
-          operatorId: selfSocketId.userId,
-          messageId: {
-            $ne: null,
-          },
-        },
-      }, {
-        $sort: {
-          updatedAt: -1,
-        },
-      }, {
-        $lookup: {
-          from: 'chatmessages',
-          localField: 'messageId',
-          foreignField: '_id',
-          as: 'chat',
-        },
-      }, {
-        $unwind: '$chat',
-      }, {
-        $project: {
-          _id: '$_id',
-          request: {
-            id: '$requestId',
-          },
-          chat: {
-            _id: '$chat.id',
-            read: '$chat.read',
-            data: {
-              $arrayElemAt: ['$chat.data', -1],
-            },
-          },
-        },
-      }]);
-
-      chatroom = chatroom.slice(payload.existChatList, payload.existChatList + apiConfig.chat.loadOldChat);
-
-      const result = await Promise.all(chatroom.map(async (value) => {
-        const request = await Requests.findOne({
-          attributes: ['id'],
-          where: {
-            id: {
-              [op.eq]: value.request.id,
-            },
-          },
-          include: [{
-            model: Carriers,
-            as: 'carrier',
-            attributes: ['id', 'name'],
-          }],
-        });
-        const user = await Users.findOne({
-          attributes: ['id', 'fullName', 'imagePath'],
-          where: {
-            id: {
-              [op.eq]: value.chat.data.userId,
-            },
-          },
-        });
-        const operator = await Operators.findOne({
-          attributes: ['id', 'fullName', 'imagePath'],
-          where: {
-            id: {
-              [op.eq]: value.chat.data.operatorId,
-            },
-          },
-        });
-        const temp = {
-          request: request.dataValues,
-          chat: {
-            _id: value.chat.data._id,
-            read: value.chat.read,
-            message: value.chat.data.message,
-            operator: operator.dataValues,
-            user: user.dataValues,
-            senderRoleId: value.chat.data.senderRoleId,
-            createdAt: value.chat.data.createdAt,
-          },
-        };
-        return temp;
-      }));
-
-      socketCallback({
-        ok: true,
-        data: result,
-      });
-    }
-  } catch (err) {
-    socketCallback({
-      ok: false,
-      error: err,
-    });
-  }
-};
 const updateReadStatus = async (socket, payload, socketCallback) => {
   try {
     const selfSocketId = await SocketSchema.findOne({
@@ -970,7 +868,7 @@ const searchChatRoom = async (socket, payload, socketCallback) => {
         });
       } else {
         const foundUserIds = await Promise.all(foundUsers.map(async (e) => e.id));
-        const chatroom = await ChatRoomSchema.aggregate([{
+        let chatroom = await ChatRoomSchema.aggregate([{
           $match: {
             activated: true,
             userId: {
@@ -1009,6 +907,8 @@ const searchChatRoom = async (socket, payload, socketCallback) => {
             },
           },
         }]);
+
+        chatroom = chatroom.slice(payload.existChatList, payload.existChatList + apiConfig.chat.loadOldChat);
 
         const result = await Promise.all(chatroom.map(async (value) => {
           const request = await Requests.findOne({
@@ -1111,14 +1011,11 @@ const chatServer = (server) => {
         .on('web-old-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChat', 'requestId'], () => {
           getWebOldChat(socket, payload, socketCallback);
         }))
-        .on('web-chat-list', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['existChatList'], () => {
-          getWebChatList(socket, payload, socketCallback);
-        }))
         .on('web-read-chat', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['requestId'], () => {
           updateReadStatus(socket, payload, socketCallback);
         }))
         .on('web-count-unread-chat', (payload, socketCallback) => getCountOfUnreadMessage(socket, payload, socketCallback))
-        .on('web-search-chatroom', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['searchText'], () => {
+        .on('web-search-chatroom', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['searchText', 'existChatList'], () => {
           searchChatRoom(socket, payload, socketCallback);
         }))
         .on('disconnect', () => removeSocketId(socket.id));
