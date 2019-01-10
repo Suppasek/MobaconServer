@@ -172,7 +172,7 @@ const getRequests = (req, res) => {
           }, {
             model: Users,
             as: 'user',
-            attributes: ['fullName', 'createdAt'],
+            attributes: ['id', 'fullName', 'createdAt'],
             include: [{
               model: Plans,
               as: 'plan',
