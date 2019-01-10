@@ -47,125 +47,13 @@ const clear = async () => {
   const chatMessage = await ChatMessageSchema.insertMany([{
     data: [{
       message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-04-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-04-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-05-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-05-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-06-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-06-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-07-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-07-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-08-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-08-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-09-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-09-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-10-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-10-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-11-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-11-08 00:00:03',
-    }],
-  }, {
-    data: [{
-      message: 'hi there',
-      userId: 13,
+      userId: 4,
       operatorId: 1,
       senderRoleId: 3,
       createdAt: '2018-12-08 00:00:01',
     }, {
       message: 'hi',
-      userId: 13,
+      userId: 4,
       operatorId: 1,
       senderRoleId: 1,
       createdAt: '2018-12-08 00:00:03',
@@ -173,107 +61,72 @@ const clear = async () => {
   }, {
     data: [{
       message: 'hi there',
-      userId: 13,
+      userId: 5,
       operatorId: 1,
       senderRoleId: 3,
-      createdAt: '2019-01-08 00:00:01',
-    }, {
-      message: 'can you help me?',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2019-01-08 00:00:02',
+      createdAt: '2018-12-08 00:00:01',
     }, {
       message: 'hi',
-      userId: 13,
+      userId: 5,
       operatorId: 1,
       senderRoleId: 1,
-      createdAt: '2019-01-08 00:00:03',
-    }, {
-      message: 'yes i can',
-      userId: 13,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2019-01-08 00:00:04',
-    }, {
-      message: 'thank you',
-      userId: 13,
+      createdAt: '2018-12-08 00:00:03',
+    }],
+  }, {
+    data: [{
+      message: 'hi there',
+      userId: 6,
       operatorId: 1,
       senderRoleId: 3,
-      createdAt: '2019-01-08 00:00:05',
+      createdAt: '2018-12-08 00:00:01',
+    }, {
+      message: 'can you help me?',
+      userId: 6,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-12-08 00:00:02',
+    }, {
+      message: 'hi',
+      userId: 6,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-12-08 00:00:03',
+    }, {
+      message: 'yes i can',
+      userId: 6,
+      operatorId: 1,
+      senderRoleId: 1,
+      createdAt: '2018-12-08 00:00:04',
+    }, {
+      message: 'thank you',
+      userId: 6,
+      operatorId: 1,
+      senderRoleId: 3,
+      createdAt: '2018-12-08 00:00:05',
     }],
   }]);
 
   await ChatRoomSchema.create([{
-    userId: 13,
-    operatorId: 2,
-    requestId: 1,
-    messageId: chatMessage[0]._id,
-    createdAt: '2018-04-07 10:00:00',
-    updatedAt: '2018-04-08 10:00:00',
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 2,
-    messageId: chatMessage[1]._id,
-    createdAt: '2018-05-07 10:00:00',
-    updatedAt: '2018-05-08 10:00:00',
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 3,
-    messageId: chatMessage[2]._id,
-    createdAt: '2018-06-07 10:00:00',
-    updatedAt: '2018-06-08 10:00:00',
-  }, {
-    userId: 13,
+    userId: 4,
     operatorId: 1,
     requestId: 4,
-    messageId: chatMessage[3]._id,
-    createdAt: '2018-07-07 10:00:00',
-    updatedAt: '2018-07-08 10:00:00',
+    messageId: chatMessage[0]._id,
+    createdAt: '2018-12-05 10:00:00',
+    updatedAt: '2018-12-08 00:00:03',
   }, {
-    userId: 13,
+    userId: 5,
     operatorId: 1,
     requestId: 5,
-    messageId: chatMessage[4]._id,
-    createdAt: '2018-08-07 10:00:00',
-    updatedAt: '2018-08-08 10:00:00',
+    messageId: chatMessage[1]._id,
+    createdAt: '2018-12-05 10:00:00',
+    updatedAt: '2018-12-08 00:00:03',
   }, {
-    userId: 13,
+    userId: 6,
     operatorId: 1,
     requestId: 6,
-    messageId: chatMessage[5]._id,
-    createdAt: '2018-09-07 10:00:00',
-    updatedAt: '2018-09-08 10:00:00',
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 7,
-    messageId: chatMessage[6]._id,
-    createdAt: '2018-10-07 10:00:00',
-    updatedAt: '2018-10-08 10:00:00',
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 8,
-    messageId: chatMessage[7]._id,
-    createdAt: '2018-11-07 10:00:00',
-    updatedAt: '2018-11-08 10:00:00',
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 9,
-    messageId: chatMessage[8]._id,
-    createdAt: '2018-12-07 10:00:00',
-    updatedAt: '2018-12-08 10:00:00',
-  }, {
-    userId: 13,
-    operatorId: 1,
-    requestId: 11,
-    messageId: chatMessage[9]._id,
-    createdAt: '2019-01-07 10:00:00',
-    updatedAt: '2019-01-08 10:00:00',
+    messageId: chatMessage[2]._id,
+    createdAt: '2018-12-05 10:00:00',
+    updatedAt: '2018-12-08 00:00:05',
   }]);
 };
 const clearSockets = async () => {
@@ -927,6 +780,7 @@ const getWebChatList = async (socket, payload, socketCallback) => {
     else {
       let chatroom = await ChatRoomSchema.aggregate([{
         $match: {
+          activated: true,
           operatorId: selfSocketId.userId,
           messageId: {
             $ne: null,
@@ -1094,6 +948,126 @@ const getCountOfUnreadMessage = async (socket, payload, socketCallback) => {
     });
   }
 };
+const searchChatRoom = async (socket, payload, socketCallback) => {
+  try {
+    const selfSocketId = await getSelfSocket(socket.id);
+
+    if (selfSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat list');
+    else {
+      const foundUsers = await Users.findAll({
+        attributes: ['id'],
+        where: {
+          fullName: {
+            [op.like]: `%${payload.searchText}%`,
+          },
+        },
+      });
+
+      if (!foundUsers.length) {
+        socketCallback({
+          ok: true,
+          data: foundUsers,
+        });
+      } else {
+        const foundUserIds = await Promise.all(foundUsers.map(async (e) => e.id));
+        const chatroom = await ChatRoomSchema.aggregate([{
+          $match: {
+            activated: true,
+            userId: {
+              $in: foundUserIds,
+            },
+            operatorId: selfSocketId.userId,
+            messageId: {
+              $ne: null,
+            },
+          },
+        }, {
+          $sort: {
+            updatedAt: -1,
+          },
+        }, {
+          $lookup: {
+            from: 'chatmessages',
+            localField: 'messageId',
+            foreignField: '_id',
+            as: 'chat',
+          },
+        }, {
+          $unwind: '$chat',
+        }, {
+          $project: {
+            _id: '$_id',
+            request: {
+              id: '$requestId',
+            },
+            chat: {
+              _id: '$chat.id',
+              read: '$chat.read',
+              data: {
+                $arrayElemAt: ['$chat.data', -1],
+              },
+            },
+          },
+        }]);
+
+        const result = await Promise.all(chatroom.map(async (value) => {
+          const request = await Requests.findOne({
+            attributes: ['id'],
+            where: {
+              id: {
+                [op.eq]: value.request.id,
+              },
+            },
+            include: [{
+              model: Carriers,
+              as: 'carrier',
+              attributes: ['id', 'name'],
+            }],
+          });
+          const user = await Users.findOne({
+            attributes: ['id', 'fullName', 'imagePath'],
+            where: {
+              id: {
+                [op.eq]: value.chat.data.userId,
+              },
+            },
+          });
+          const operator = await Operators.findOne({
+            attributes: ['id', 'fullName', 'imagePath'],
+            where: {
+              id: {
+                [op.eq]: value.chat.data.operatorId,
+              },
+            },
+          });
+          const temp = {
+            request: request.dataValues,
+            chat: {
+              _id: value.chat.data._id,
+              read: value.chat.read,
+              message: value.chat.data.message,
+              operator: operator.dataValues,
+              user: user.dataValues,
+              senderRoleId: value.chat.data.senderRoleId,
+              createdAt: value.chat.data.createdAt,
+            },
+          };
+          return temp;
+        }));
+
+        socketCallback({
+          ok: true,
+          data: result,
+        });
+      }
+    }
+  } catch (err) {
+    socketCallback({
+      ok: false,
+      error: err,
+    });
+  }
+};
 
 // MOTHODS FOR NOTIFICATION
 const getUserSocketId = async (userId) => {
@@ -1144,6 +1118,9 @@ const chatServer = (server) => {
           updateReadStatus(socket, payload, socketCallback);
         }))
         .on('web-count-unread-chat', (payload, socketCallback) => getCountOfUnreadMessage(socket, payload, socketCallback))
+        .on('web-search-chatroom', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['searchText'], () => {
+          searchChatRoom(socket, payload, socketCallback);
+        }))
         .on('disconnect', () => removeSocketId(socket.id));
     });
   });

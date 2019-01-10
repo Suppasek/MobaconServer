@@ -14,7 +14,7 @@ const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
-  .use(morgan())
+  .use(morgan('combined'))
   .use('/mobacon/api/', router);
 
 mongoose.connect(mongoConfig.mongoUri, {
