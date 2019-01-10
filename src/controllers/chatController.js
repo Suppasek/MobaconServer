@@ -79,14 +79,12 @@ const getChatHistoryByUserId = (req, res) => {
             request: request.dataValues,
             chat: {
               chatroomId: value.chatroomId,
-              data: {
-                _id: value.chat.data._id,
-                read: value.chat.read,
-                message: value.chat.data.message,
-                operator: foundOperator.dataValues,
-                senderRoleId: value.chat.data.senderRoleId,
-                createdAt: value.chat.data.createdAt,
-              },
+              _id: value.chat.data._id,
+              read: value.chat.read,
+              message: value.chat.data.message,
+              operator: foundOperator.dataValues,
+              senderRoleId: value.chat.data.senderRoleId,
+              createdAt: value.chat.data.createdAt,
             },
           };
           return temp;
