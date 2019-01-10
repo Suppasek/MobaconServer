@@ -598,7 +598,7 @@ const getReviewByUserId = (req, res) => {
               [op.eq]: req.params.userId,
             },
           },
-          attributes: ['fullName'],
+          attributes: ['id', 'fullName', 'imagePath'],
           order: [
             ['request', 'createdAt', 'DESC'],
           ],
@@ -612,6 +612,10 @@ const getReviewByUserId = (req, res) => {
               },
             },
             include: [{
+              model: Operators,
+              as: 'operator',
+              attributes: ['id', 'fullName', 'imagePath'],
+            }, {
               model: Carriers,
               as: 'carrier',
               attributes: ['id', 'name'],

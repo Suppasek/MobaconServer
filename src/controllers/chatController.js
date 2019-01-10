@@ -109,17 +109,18 @@ const getChatHistoryByUserId = (req, res) => {
     });
   });
 };
-const getOldChatByChatRoomId = (req, res) => {
+const getOldChatByRequestId = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
       try {
         const chatroom = await ChatRoomSchema.findOne({
-          messageId: req.params.chatroomId,
+          requestId: req.params.requestId,
         });
+
         const request = await Requests.findOne({
           where: {
             id: {
-              [op.eq]: chatroom.requestId,
+              [op.eq]: req.params.requestId,
             },
           },
           include: [{
@@ -167,7 +168,7 @@ const getOldChatByChatRoomId = (req, res) => {
           },
         }, {
           $match: {
-            _id: mongooseTypes.ObjectId(req.params.chatroomId),
+            _id: mongooseTypes.ObjectId(chatroom.messageId),
           },
         }]);
 
@@ -189,5 +190,5 @@ const getOldChatByChatRoomId = (req, res) => {
 
 module.exports = {
   getChatHistoryByUserId,
-  getOldChatByChatRoomId,
+  getOldChatByRequestId,
 };

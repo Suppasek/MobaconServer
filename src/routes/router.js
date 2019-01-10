@@ -41,7 +41,7 @@ router.patch('/web/request/:requestId/acceptance', requestController.requestAcce
 router.put('/web/request/:requestId/memo', requestController.putRequestMemoById);
 router.post('/web/request/:requestId/review', requestController.createRequestReviewById);
 router.get('/web/request/chat/:userId', chatController.getChatHistoryByUserId);
-router.get('/web/request/chat/detail/:chatroomId/:existChat', chatController.getOldChatByChatRoomId);
+router.get('/web/request/chat/detail/:requestId/:existChat', chatController.getOldChatByRequestId);
 
 router.get('/web/dashboard/user', dashboardController.getUserForDashboard);
 router.get('/web/dashboard/request', dashboardController.getRequestForDashboard);
