@@ -1,3 +1,4 @@
+const moment = require('moment');
 const Sequelize = require('sequelize');
 
 const {
@@ -10,10 +11,10 @@ const {
   Offers,
   Plans,
 } = require('../models');
+const BillSchema = require('../mongoSchema/billSchema');
 const ChatRoomSchema = require('../mongoSchema/chatRoomSchema');
 const config = require('../config/APIConfig');
 const constant = require('../config/APIConstant');
-const billSchema = require('../mongoSchema/billSchema');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
 const notificationService = require('./services/socketService');
@@ -41,8 +42,115 @@ const createNewChatRoom = async (requestId, userId, operatorId) => {
     requestId,
   }]);
 };
+const findAcceptedRequestOfMonth = async (userId) => {
+  const startOfMonth = moment().startOf('month').format('YYYY-MM-DD HH:mm:ss');
+  const endOfMonth = moment().endOf('month').format('YYYY-MM-DD HH:mm:ss');
+
+  const foundRequest = await Requests.findOne({
+    where: {
+      userId: {
+        [op.eq]: userId,
+      },
+      status: {
+        [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
+      },
+      createdAt: {
+        [op.between]: [startOfMonth, endOfMonth],
+      },
+    },
+  });
+
+  return !!foundRequest;
+};
+const removeOldPendingRequestAndBill = async (userId) => {
+  const foundRequest = await Requests.findAll({
+    attributes: ['billRef'],
+    where: {
+      userId: {
+        [op.eq]: userId,
+      },
+      status: {
+        [op.eq]: constant.REQUEST_STATUS.PENDING,
+      },
+    },
+  });
+
+  await Promise.all(foundRequest.map(async (e) => {
+    await BillSchema.findByIdAndDelete(e.billRef);
+  }));
+
+  await Requests.destroy({
+    where: {
+      userId: {
+        [op.eq]: userId,
+      },
+      status: {
+        [op.eq]: constant.REQUEST_STATUS.PENDING,
+      },
+    },
+  });
+};
+const createNewBill = async (userId, carrierId, xml) => {
+  const createdBill = await BillSchema.create([{
+    userId,
+    carrier: carrierId,
+    amount: 1000,
+    used: {
+      minutes: 100,
+      sms: 20,
+      internet: 50,
+    },
+    emissionAt: moment.utc(),
+    paidAt: moment.utc(),
+  }]);
+
+  return createdBill;
+};
+const deactiveChatRoom = async (userId) => {
+  await ChatRoomSchema.update({
+    userId,
+  }, {
+    activated: false,
+  });
+};
 
 // CONTROLLER METHODS
+const createRequest = (req, res) => {
+  passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
+    validationHelper.userValidator(req, res, user, newToken, async () => {
+      try {
+        if (await findAcceptedRequestOfMonth(user.id)) {
+          res.status(403).json({
+            token: newToken,
+            message: 'cannot create a new request, your previous request is accepted',
+          });
+        } else {
+          await deactiveChatRoom(user.id);
+          await removeOldPendingRequestAndBill(user.id);
+
+          const createdBill = await createNewBill(user.id, req.params.carrierId, req.body);
+
+          await Requests.create({
+            userId: user.id,
+            carrierId: req.params.carrierId,
+            billRef: createdBill[0]._id.toString(),
+            status: constant.REQUEST_STATUS.PENDING,
+          });
+
+          res.status(201).json({
+            token: newToken,
+            message: 'create a new request successfully',
+          });
+        }
+      } catch (err) {
+        res.status(500).json({
+          token: newToken,
+          message: 'Internal server error',
+        });
+      }
+    });
+  });
+};
 const getRequests = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
@@ -457,7 +565,7 @@ const getBillByUserId = (req, res) => {
           },
         });
 
-        const bills = await billSchema.find({
+        const bills = await BillSchema.find({
           _id: {
             $in: await foundbills.map((bill) => bill.billRef),
           },
@@ -561,7 +669,7 @@ const getReviewByRequestId = (req, res) => {
           ],
         });
 
-        const bill = await billSchema.findById(lastRequest.billRef).select('-__v').select('-carrier');
+        const bill = await BillSchema.findById(lastRequest.billRef).select('-__v').select('-carrier');
         delete lastRequest.dataValues.billRef;
         lastRequest.dataValues.bill = bill;
 
@@ -695,6 +803,7 @@ const dislikeReviewByRequestId = (req, res) => {
 };
 
 module.exports = {
+  createRequest,
   getRequests,
   getAcceptedRequests,
   getRequestById,

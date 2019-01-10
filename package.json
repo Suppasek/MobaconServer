@@ -22,6 +22,7 @@
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.4",
     "express": "^4.16.3",
+    "express-xml-bodyparser": "^0.3.0",
     "handlebars": "^4.0.12",
     "https": "^1.0.0",
     "in-app-purchase": "^1.10.7",

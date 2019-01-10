@@ -8,7 +8,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
     },
     operatorId: {
-      allowNull: false,
       validate: {
         notEmpty: true,
       },
@@ -37,14 +36,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM('Pending', 'Accepted', 'Reviewed'),
     },
     memoId: {
-      allowNull: false,
       validate: {
         notEmpty: true,
       },
       type: DataTypes.INTEGER,
     },
     offerId: {
-      allowNull: false,
       validate: {
         notEmpty: true,
       },
