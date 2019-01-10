@@ -28,6 +28,19 @@ const getPage = async (page, limit) => {
     return undefined;
   }
 };
+const createNewChatRoom = async (requestId, userId, operatorId) => {
+  await ChatRoomSchema.updateMany({
+    userId,
+    activated: true,
+  }, {
+    activated: false,
+  });
+  await ChatRoomSchema.create([{
+    userId,
+    operatorId,
+    requestId,
+  }]);
+};
 
 // CONTROLLER METHODS
 const getRequests = (req, res) => {
@@ -259,17 +272,13 @@ const requestAcceptance = (req, res) => {
             status: 'Accepted',
           });
 
-          await ChatRoomSchema.create([{
-            userId: request.userId,
-            operatorId: operator.id,
-            requestId: request.id,
-          }]);
-
           res.status(200).json({
             token: newToken,
             message: 'accept request successfully',
           });
-          notificationService.sendNotification({
+
+          await createNewChatRoom(request.id, request.userId, operator.id);
+          await notificationService.sendNotification({
             type: config.notification.acceptance.type,
             title: config.notification.acceptance.title,
             body: config.notification.acceptance.body,
