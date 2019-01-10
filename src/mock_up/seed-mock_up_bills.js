@@ -33,7 +33,7 @@ const getBillData = () => {
 
 const data = [];
 
-for (let i = 1; i <= 12; i += 1) {
+for (let i = 1; i <= 6; i += 1) {
   data.push({
     userId: 13,
     carrier: 1,

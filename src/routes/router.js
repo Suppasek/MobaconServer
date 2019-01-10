@@ -56,6 +56,7 @@ router.patch('/mobile/user', userController.editUser);
 router.patch('/mobile/user/password', authController.mobileChangePassword);
 router.patch('/mobile/user/family', planController.updateFamily);
 
+router.post('/mobile/request/:carrierId', requestController.createRequest);
 router.get('/mobile/request/review', requestController.getReviewByRequestId);
 router.patch('/mobile/request/review/:requestId/like', requestController.likeReviewByRequestId);
 router.patch('/mobile/request/review/:requestId/dislike', requestController.dislikeReviewByRequestId);
