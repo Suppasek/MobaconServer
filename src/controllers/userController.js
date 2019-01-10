@@ -2,6 +2,7 @@ const Sequelize = require('sequelize');
 
 const multerService = require('./services/multerService');
 const passportService = require('./services/passportService');
+const validationHelper = require('../helpers/validationHelper');
 
 const op = Sequelize.Op;
 
@@ -65,7 +66,24 @@ const editUser = (req, res) => {
     });
   });
 };
+const upgradePlan = (req, res) => {
+  multerService.validateMobileUploadImage(req, res, async () => {
+    passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
+      validationHelper.bodyValidator(req, res, ['message'], async () => {
+        try {
+
+        } catch (err) {
+          res.status(500).json({
+            token: newToken,
+            message: 'Internal server error',
+          });
+        }
+      });
+    });
+  });
+};
 
 module.exports = {
   editUser,
+  upgradePlan,
 };
