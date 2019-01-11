@@ -35,7 +35,7 @@ const data = [];
 
 for (let i = 1; i <= 6; i += 1) {
   data.push({
-    userId: 13,
+    userId: i,
     carrier: 1,
     ...getBillData(),
     emissionAt: moment.utc(`2018-${(`0${i}`).slice(-2)}-01 01:00:00`),
