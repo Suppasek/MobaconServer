@@ -10,7 +10,6 @@
     "undo-migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all",
     "seed": "sequelize --options-path=src/config/sequelize-options.js db:seed:all",
     "reset-db": "npm run seed-bill && npm run undo-migrate && npm run migrate && npm run seed",
-    "chat-api": "nodemon src/chatAPI/chatApp.js",
     "test": "eslint ."
   },
   "keywords": [],

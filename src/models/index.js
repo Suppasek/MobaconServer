@@ -8,6 +8,7 @@ const config = require('../config/config')[env];
 
 const db = {};
 config.logging = false;
+config.operatorsAliases = false;
 
 let sequelize;
 if (config.use_env_variable) {
