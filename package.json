@@ -2,9 +2,9 @@
   "name": "mobacon-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "src/mainApp.js",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon src/mainApp.js",
+    "start": "nodemon index.js",
     "seed-bill": "node src/mock_up/seed.js",
     "migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate",
     "undo-migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all",
@@ -23,7 +23,6 @@
     "express": "^4.16.3",
     "express-xml-bodyparser": "^0.3.0",
     "handlebars": "^4.0.12",
-    "https": "^1.0.0",
     "in-app-purchase": "^1.10.7",
     "jsonwebtoken": "^8.3.0",
     "moment": "^2.22.2",
@@ -51,12 +50,9 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
     "eslint": "^5.6.1",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.14.0",
-    "mocha": "^5.2.0",
-    "nodemon": "^1.18.4"
+    "eslint-plugin-import": "^2.14.0"
   }
 }

@@ -84,25 +84,6 @@ router.get('/image/profile/default/:imageName', imageController.getDefaultProfil
 router.get('/web/operator/image/:imageName', imageController.getOperatorImage);
 router.get('/web/user/image/:imageName', imageController.getUserImage);
 
-
-// ROLLBACK DATABASE
-router.get('/rollback', async (req, res) => {
-  console.log('RUNNING ROLLBACK DATABASE');
-  try {
-    await npmRun.execSync(`node ${path.join(__dirname, '../mock_up/seed.js')}`);
-    await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all');
-    await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:migrate');
-    await npmRun.execSync('sequelize --options-path=src/config/sequelize-options.js db:seed:all');
-
-    res.send({
-      message: 'rollback database successfully',
-    });
-    console.log('ROLLBACK DATABASE SUCCESSFULLY');
-  } catch (err) {
-    console.log('ROLLBACK FAILED', err);
-    res.send('rollback database failed');
-  }
-});
 // TEST  NOTIFICATION
 router.get('/test/notification/acceptance/:userId', async (req, res) => {
   try {

@@ -1,7 +1,6 @@
 module.exports = {
   baseUrl: 'localhost',
   httpPort: 8800,
-  httpsPort: 8443,
   socketPort: 8888,
   analyticUrl: 'http://localhost:3000',
   image: {
