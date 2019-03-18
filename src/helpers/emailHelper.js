@@ -1,13 +1,13 @@
 const fs = require('fs');
 const path = require('path');
+const sgMail = require('@sendgrid/mail');
 const handlebars = require('handlebars');
-const nodemailer = require('nodemailer');
-const nodemailerSmtpTransport = require('nodemailer-smtp-transport');
 
 const apiConfig = require('../config/APIConfig');
 const mailerConfig = require('../config/MailerConfig');
 
-// METHODS
+sgMail.setApiKey(mailerConfig.key);
+
 const readHTMLFile = (filePath, next) => {
   fs.readFile(filePath, { encoding: 'utf-8' }, (err, html) => {
     if (err) {
@@ -17,46 +17,40 @@ const readHTMLFile = (filePath, next) => {
     }
   });
 };
-
-const smtpTransport = nodemailer.createTransport(nodemailerSmtpTransport(mailerConfig));
-
 const sendVerificationMail = (email, forgetPasswordToken) => {
   readHTMLFile(path.join(__dirname, './templates/verifyAccount.html'), (err, html) => {
     const template = handlebars.compile(html);
-    const replacements = {
+    const htmlToSend = template({
       protocol: apiConfig.web.protocol,
       host: apiConfig.web.host,
       port: apiConfig.web.port,
       token: forgetPasswordToken,
-    };
-    const htmlToSend = template(replacements);
+    });
     const mailOptions = {
-      from: `"Mobacon" <${mailerConfig.auth.user}>`,
       to: email,
+      from: 'Mobacon@mobacon.com',
       subject: 'Confirm your account',
       html: htmlToSend,
     };
-    smtpTransport.sendMail(mailOptions);
+    sgMail.send(mailOptions);
   });
 };
-
 const sendChangePasswordMail = (email, forgetPasswordToken) => {
   readHTMLFile(path.join(__dirname, './templates/changePassword.html'), (err, html) => {
     const template = handlebars.compile(html);
-    const replacements = {
+    const htmlToSend = template({
       protocol: apiConfig.web.protocol,
       host: apiConfig.web.host,
       port: apiConfig.web.port,
       token: forgetPasswordToken,
-    };
-    const htmlToSend = template(replacements);
+    });
     const mailOptions = {
-      from: `"Mobacon" <${mailerConfig.auth.user}>`,
+      from: 'Mobacon@mobacon.com',
       to: email,
       subject: 'Change your password',
       html: htmlToSend,
     };
-    smtpTransport.sendMail(mailOptions);
+    sgMail.send(mailOptions);
   });
 };
 

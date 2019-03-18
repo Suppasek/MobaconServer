@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs');
 const nameRandom = require('random-name');
 
 module.exports = {
@@ -7,7 +8,7 @@ module.exports = {
     planId: 1,
     fullName: nameRandom(),
     phoneNumber: '0800000001',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     createdAt: Sequelize.fn('NOW'),
@@ -18,7 +19,7 @@ module.exports = {
     planId: 1,
     fullName: nameRandom(),
     phoneNumber: '0800000002',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     createdAt: Sequelize.fn('NOW'),
@@ -29,7 +30,7 @@ module.exports = {
     planId: 1,
     fullName: nameRandom(),
     phoneNumber: '0800000003',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     createdAt: Sequelize.fn('NOW'),
@@ -40,7 +41,7 @@ module.exports = {
     planId: 2,
     fullName: nameRandom(),
     phoneNumber: '0800000004',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     createdAt: Sequelize.fn('NOW'),
@@ -51,7 +52,7 @@ module.exports = {
     planId: 2,
     fullName: nameRandom(),
     phoneNumber: '0800000005',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     createdAt: Sequelize.fn('NOW'),
@@ -62,7 +63,7 @@ module.exports = {
     planId: 2,
     fullName: nameRandom(),
     phoneNumber: '0800000006',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     createdAt: Sequelize.fn('NOW'),

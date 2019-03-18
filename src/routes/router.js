@@ -1,6 +1,4 @@
-const path = require('path');
 const moment = require('moment');
-const npmRun = require('npm-run');
 const express = require('express');
 
 const authController = require('../controllers/authController');

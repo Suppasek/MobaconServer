@@ -9,7 +9,7 @@ const xmlparser = require('express-xml-bodyparser');
 const config = require('./config/APIConfig');
 const mongoConfig = require('./config/MongoConfig');
 const socket = require('./controllers/services/socketService');
-const router = require('./routes/router').Router;
+const { Router } = require('./routes/router');
 
 const app = express()
   .use(cors())
@@ -17,17 +17,16 @@ const app = express()
   .use(bodyParser.urlencoded({ extended: true }))
   .use(xmlparser())
   .use(morgan('combined'))
-  .use('/mobacon/api/', router);
+  .use('/mobacon/api/', Router);
 
 mongoose.connect(mongoConfig.mongoUri, {
   useNewUrlParser: true,
 });
 mongoose.set('useFindAndModify', false);
 
-// CREATE SERVER WITH HTTP
 const httpServer = http.createServer(app).listen(config.httpPort, () => {
   console.clear();
-  console.log(`Start http server at\t ${config.baseUrl}:${config.httpPort}`);
+  console.log(`START SERVER AT ${config.baseUrl}:${config.httpPort}`);
 });
 
 socket.chat(httpServer);

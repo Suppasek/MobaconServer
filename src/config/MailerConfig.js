@@ -1,9 +1,3 @@
 module.exports = {
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: 'rawipon.dev.mailer@gmail.com',
-    pass: 'wiwiwiwi',
-  },
+  key: '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',
 };

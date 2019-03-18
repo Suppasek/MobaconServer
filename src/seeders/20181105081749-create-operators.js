@@ -1,10 +1,12 @@
+const bcrypt = require('bcryptjs');
+
 module.exports = {
   up: (queryInterface, Sequelize) => queryInterface.bulkInsert('Operators', [{
     id: 1,
     roleId: 1,
     fullName: 'Mobacon Administrator',
     email: 'admin@mobacon.com',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     activated: true,
@@ -15,7 +17,7 @@ module.exports = {
     roleId: 2,
     fullName: 'Operator Mobacon',
     email: 'operator@mobacon.com',
-    password: '$2a$08$HOYwHp0VYxj0kMB07Pa8QOsDYQgiKP41RVYCMTLZEb5zRCMoMLNWm',
+    password: bcrypt.hashSync('wiwiwi', bcrypt.genSaltSync(10)),
     imagePath: '/mobacon/api/image/profile/default/default_profile.png',
     verified: true,
     activated: true,
