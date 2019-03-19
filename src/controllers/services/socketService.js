@@ -40,94 +40,56 @@ class CustomError extends Error {
   }
 }
 
+// FOR MOCKUP
+const generateChatHistory = (userId, operatorId, operatorRoleId) => [{
+  message: 'hi there !',
+  userId,
+  operatorId,
+  senderRoleId: 3,
+  createdAt: '2018-12-08 00:00:01',
+}, {
+  message: 'hi, how can I help you ?',
+  userId,
+  operatorId,
+  senderRoleId: operatorRoleId,
+  createdAt: '2018-12-08 00:00:03',
+}];
+const generateChatRoom = (userId, operatorId, requestId, messageId) => ({
+  userId,
+  operatorId,
+  requestId,
+  messageId,
+  createdAt: '2018-12-05 10:00:00',
+  updatedAt: '2018-12-08 00:00:03',
+});
+
 // METHODS FOR CHAT
 const clear = async () => {
   await ChatRoomSchema.deleteMany({});
   await ChatMessageSchema.deleteMany({});
+
   const chatMessage = await ChatMessageSchema.insertMany([{
-    data: [{
-      message: 'hi there',
-      userId: 4,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-12-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 4,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-12-08 00:00:03',
-    }],
+    data: generateChatHistory(1, 1, 1),
   }, {
-    data: [{
-      message: 'hi there',
-      userId: 5,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-12-08 00:00:01',
-    }, {
-      message: 'hi',
-      userId: 5,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-12-08 00:00:03',
-    }],
+    data: generateChatHistory(2, 1, 1),
   }, {
-    data: [{
-      message: 'hi there',
-      userId: 6,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-12-08 00:00:01',
-    }, {
-      message: 'can you help me?',
-      userId: 6,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-12-08 00:00:02',
-    }, {
-      message: 'hi',
-      userId: 6,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-12-08 00:00:03',
-    }, {
-      message: 'yes i can',
-      userId: 6,
-      operatorId: 1,
-      senderRoleId: 1,
-      createdAt: '2018-12-08 00:00:04',
-    }, {
-      message: 'thank you',
-      userId: 6,
-      operatorId: 1,
-      senderRoleId: 3,
-      createdAt: '2018-12-08 00:00:05',
-    }],
+    data: generateChatHistory(3, 1, 1),
+  }, {
+    data: generateChatHistory(4, 2, 2),
+  }, {
+    data: generateChatHistory(5, 2, 2),
+  }, {
+    data: generateChatHistory(6, 2, 2),
   }]);
 
-  await ChatRoomSchema.create([{
-    userId: 4,
-    operatorId: 1,
-    requestId: 4,
-    messageId: chatMessage[0]._id,
-    createdAt: '2018-12-05 10:00:00',
-    updatedAt: '2018-12-08 00:00:03',
-  }, {
-    userId: 5,
-    operatorId: 1,
-    requestId: 5,
-    messageId: chatMessage[1]._id,
-    createdAt: '2018-12-05 10:00:00',
-    updatedAt: '2018-12-08 00:00:03',
-  }, {
-    userId: 6,
-    operatorId: 1,
-    requestId: 6,
-    messageId: chatMessage[2]._id,
-    createdAt: '2018-12-05 10:00:00',
-    updatedAt: '2018-12-08 00:00:05',
-  }]);
+  await ChatRoomSchema.create([
+    generateChatRoom(1, 1, 1, chatMessage[0]._id),
+    generateChatRoom(2, 1, 2, chatMessage[1]._id),
+    generateChatRoom(3, 1, 3, chatMessage[2]._id),
+    generateChatRoom(4, 2, 4, chatMessage[3]._id),
+    generateChatRoom(5, 2, 5, chatMessage[4]._id),
+    generateChatRoom(6, 2, 6, chatMessage[5]._id),
+  ]);
 };
 const clearSockets = async () => {
   await SocketSchema.deleteMany({});
@@ -335,12 +297,14 @@ const payloadValidator = async (socketCallback, payload, keys, next) => {
 };
 const sendChatToOperator = async (io, requestId, operatorId, userId, chat, newChatroom) => {
   const operatorSocketIds = await SocketSchema.find({
-    userId: operatorId,
     $or: [{
-      roleId: constant.ROLE.ADMINISTRATOR,
+      userId: operatorId,
     }, {
-      roleId: constant.ROLE.OPERATOR,
+      roleId: constant.ROLE.ADMINISTRATOR,
     }],
+    roleId: {
+      $ne: constant.ROLE.USER,
+    },
   });
   const user = await Users.findOne({
     attributes: ['id', 'fullName', 'imagePath'],
@@ -451,7 +415,11 @@ const sendWebSelfChat = async (io, requestId, operatorId, userId, chat, selfSock
     socketId: {
       $ne: selfSocketId,
     },
-    userId: operatorId,
+    $or: [{
+      userId: operatorId,
+    }, {
+      roleId: constant.ROLE.ADMINISTRATOR,
+    }],
   });
 
   const request = await Requests.findOne({
@@ -581,7 +549,7 @@ const webChat = async (io, socket, payload, socketCallback) => {
     if (foundSocketId.roleId === constant.ROLE.USER) throw new CustomError('ChatError', 'forbidden for chat');
     else if (!request) throw new CustomError('ChatError', 'request not found');
     else if (!request.operatorId) throw new CustomError('ChatError', 'request is not accepted');
-    else if (request.operatorId !== foundSocketId.userId) throw new CustomError('ChatError', 'forbidden for this request');
+    else if (request.operatorId !== foundSocketId.userId && foundSocketId.roleId === constant.ROLE.OPERATOR) throw new CustomError('ChatError', 'forbidden for this request');
     else if (!chatroom.messageId) throw new CustomError('ChatError', 'forbidden for chat, wait user start the chat');
     else {
       const chat = await storeChat(chatroom.messageId, request.userId, request.operatorId, payload.text, foundSocketId.roleId);
@@ -712,7 +680,7 @@ const getWebOldChat = async (socket, payload, socketCallback) => {
 
       if (!request) throw new CustomError('ChatError', 'request does not exist');
       else if (!request.operatorId) throw new CustomError('ChatError', 'request is not accept');
-      else if (request.operatorId !== foundSocketId.userId) throw new CustomError('ChatError', 'request is not your');
+      else if (request.operatorId !== foundSocketId.userId && foundSocketId.roleId === constant.ROLE.OPERATOR) throw new CustomError('ChatError', 'request is not your');
       else {
         const chatroom = await ChatRoomSchema.findOne({
           userId: request.userId,
@@ -874,7 +842,7 @@ const searchChatRoom = async (socket, payload, socketCallback) => {
             userId: {
               $in: foundUserIds,
             },
-            operatorId: selfSocketId.userId,
+            ...selfSocketId.roleId === constant.ROLE.ADMINISTRATOR ? {} : { operatorId: selfSocketId.userId },
             messageId: {
               $ne: null,
             },

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
+const moment = require('moment');
 const rn = require('random-number');
 const mongoose = require('mongoose');
-const moment = require('moment');
 
 const mongoConfig = require('../config/MongoConfig');
 const billSchema = require('../mongoSchema/billSchema');
