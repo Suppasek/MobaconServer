@@ -2,20 +2,22 @@
   "name": "mobacon-backend",
   "version": "1.0.0",
   "description": "",
-  "main": "src/mainApp.js",
+  "main": "index.js",
   "scripts": {
-    "start": "nodemon src/mainApp.js",
+    "start": "nodemon index.js",
     "seed-bill": "node src/mock_up/seed.js",
     "migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate",
     "undo-migrate": "sequelize --options-path=src/config/sequelize-options.js db:migrate:undo:all",
     "seed": "sequelize --options-path=src/config/sequelize-options.js db:seed:all",
     "reset-db": "npm run seed-bill && npm run undo-migrate && npm run migrate && npm run seed",
-    "test": "eslint ."
+    "test": "eslint .",
+    "lint": "eslint ."
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^6.3.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "connect-timeout": "^1.9.0",
@@ -23,7 +25,6 @@
     "express": "^4.16.3",
     "express-xml-bodyparser": "^0.3.0",
     "handlebars": "^4.0.12",
-    "https": "^1.0.0",
     "in-app-purchase": "^1.10.7",
     "jsonwebtoken": "^8.3.0",
     "moment": "^2.22.2",
@@ -32,8 +33,6 @@
     "multer": "^1.4.1",
     "mysql2": "^1.6.1",
     "node-time-uuid": "^0.1.5",
-    "nodemailer": "^4.6.8",
-    "nodemailer-smtp-transport": "^2.7.4",
     "npm-run": "^5.0.1",
     "p-iteration": "^1.1.7",
     "passport": "^0.4.0",
@@ -51,12 +50,9 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "chai": "^4.2.0",
     "eslint": "^5.6.1",
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.14.0",
-    "mocha": "^5.2.0",
-    "nodemon": "^1.18.4"
+    "eslint-plugin-import": "^2.14.0"
   }
 }

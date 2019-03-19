@@ -29,6 +29,3 @@ Migrate and seed data to database with following command.
 	$ cd src/
 	$ sequelize db:migrate
 	$ sequelize db:seed:all
-
-## License
-Buzzfreeze Solution

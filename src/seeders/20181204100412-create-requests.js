@@ -37,7 +37,7 @@ module.exports = {
   }, {
     id: 4,
     userId: 4,
-    operatorId: 1,
+    operatorId: 2,
     carrierId: 1,
     billRef: billIds.bills[3]._id,
     status: 'Reviewed',
@@ -47,7 +47,7 @@ module.exports = {
   }, {
     id: 5,
     userId: 5,
-    operatorId: 1,
+    operatorId: 2,
     carrierId: 1,
     billRef: billIds.bills[4]._id,
     status: 'Reviewed',
@@ -57,7 +57,7 @@ module.exports = {
   }, {
     id: 6,
     userId: 6,
-    operatorId: 1,
+    operatorId: 2,
     carrierId: 1,
     billRef: billIds.bills[5]._id,
     status: 'Reviewed',
