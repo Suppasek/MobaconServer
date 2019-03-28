@@ -11,16 +11,29 @@ const mongoConfig = require('./config/MongoConfig');
 const socket = require('./controllers/services/socketService');
 const { Router } = require('./routes/router');
 
+function xmlParser(req, res, next) {
+  let data = '';
+  req.setEncoding('utf8');
+  req.on('data', function(chunk) {
+    data += chunk;
+  });
+  req.on('end', function() {
+    req.rawBody = data;
+    next();
+  });
+}
+
 const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
-  .use(xmlparser())
+  .use(xmlParser)
+  // .use(xmlparser())
   .use(morgan('combined'))
   .use('/mobacon/api/', Router);
 
 mongoose.connect(mongoConfig.mongoUri, {
-  useNewUrlParser: true,
+  useNewUrlParser: true
 });
 mongoose.set('useFindAndModify', false);
 
