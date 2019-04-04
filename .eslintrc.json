@@ -7,6 +7,7 @@
         "linebreak-style": "off",
         "max-len": "off",
         "valid-typeof": "off",
-        "no-underscore-dangle": "off"
+        "no-underscore-dangle": "off",
+        "global-require": "off"
     }
 }

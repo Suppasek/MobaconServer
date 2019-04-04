@@ -1,5 +1,6 @@
 const moment = require('moment');
 const Sequelize = require('sequelize');
+const requestPromise = require('request-promise');
 
 const {
   Roles,
@@ -9,7 +10,7 @@ const {
   Requests,
   Memos,
   Offers,
-  Plans
+  Plans,
 } = require('../models');
 const BillSchema = require('../mongoSchema/billSchema');
 const ChatRoomSchema = require('../mongoSchema/chatRoomSchema');
@@ -18,7 +19,6 @@ const constant = require('../config/APIConstant');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
 const notificationService = require('./services/socketService');
-const request = require('request-promise');
 
 const op = Sequelize.Op;
 
@@ -34,18 +34,18 @@ const createNewChatRoom = async (requestId, userId, operatorId) => {
   await ChatRoomSchema.updateMany(
     {
       userId,
-      activated: true
+      activated: true,
     },
     {
-      activated: false
-    }
+      activated: false,
+    },
   );
   await ChatRoomSchema.create([
     {
       userId,
       operatorId,
-      requestId
-    }
+      requestId,
+    },
   ]);
 };
 const findAcceptedRequestOfMonth = async userId => {
@@ -59,15 +59,15 @@ const findAcceptedRequestOfMonth = async userId => {
   const foundRequest = await Requests.findOne({
     where: {
       userId: {
-        [op.eq]: userId
+        [op.eq]: userId,
       },
       status: {
-        [op.eq]: constant.REQUEST_STATUS.ACCEPTED
+        [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
       },
       createdAt: {
-        [op.between]: [startOfMonth, endOfMonth]
-      }
-    }
+        [op.between]: [startOfMonth, endOfMonth],
+      },
+    },
   });
 
   return !!foundRequest;
@@ -77,38 +77,38 @@ const removeOldPendingRequestAndBill = async userId => {
     attributes: ['billRef'],
     where: {
       userId: {
-        [op.eq]: userId
+        [op.eq]: userId,
       },
       status: {
-        [op.eq]: constant.REQUEST_STATUS.PENDING
-      }
-    }
+        [op.eq]: constant.REQUEST_STATUS.PENDING,
+      },
+    },
   });
 
   await Promise.all(
     foundRequest.map(async e => {
       await BillSchema.findByIdAndDelete(e.billRef);
-    })
+    }),
   );
 
   await Requests.destroy({
     where: {
       userId: {
-        [op.eq]: userId
+        [op.eq]: userId,
       },
       status: {
-        [op.eq]: constant.REQUEST_STATUS.PENDING
-      }
-    }
+        [op.eq]: constant.REQUEST_STATUS.PENDING,
+      },
+    },
   });
 };
 const createNewBill = async (userId, carrierId, xml) => {
-  // TODO carerId should be a name (e.g. docomo,kddi  etc..)
+  // TODO carrierId should be a name (e.g. docomo,kddi etc..)
   const carrierName = carrierId; // assume get the name (maybe from config ?)
-  const result = await request({
+  const result = await requestPromise({
     method: 'POST',
     uri: `http://localhost:3000/api/extract/${carrierName}/${userId}`,
-    body: xml
+    body: xml,
   });
 
   // result = "{"userId":"1234","billingUrl":"/api/billings/5c9afe5ef40cf840d48ecd3e","createdDate":"2019-03-27T04:38:54.195Z"}"
@@ -122,11 +122,11 @@ const createNewBill = async (userId, carrierId, xml) => {
       used: {
         minutes: 100,
         sms: 20,
-        internet: 50
+        internet: 50,
       },
       emissionAt: moment.utc(),
-      paidAt: moment.utc()
-    }
+      paidAt: moment.utc(),
+    },
   ]);
 
   return createdBill;
@@ -134,11 +134,11 @@ const createNewBill = async (userId, carrierId, xml) => {
 const deactiveChatRoom = async userId => {
   await ChatRoomSchema.update(
     {
-      userId
+      userId,
     },
     {
-      activated: false
-    }
+      activated: false,
+    },
   );
 };
 
@@ -151,7 +151,7 @@ const createRequest = (req, res) => {
           res.status(403).json({
             token: newToken,
             message:
-              'cannot create a new request, your previous request is accepted'
+              'cannot create a new request, your previous request is accepted',
           });
         } else {
           await deactiveChatRoom(user.id);
@@ -160,25 +160,25 @@ const createRequest = (req, res) => {
           const createdBill = await createNewBill(
             user.id,
             req.params.carrierId,
-            req.rawBody
+            req.rawBody,
           );
 
           await Requests.create({
             userId: user.id,
             carrierId: req.params.carrierId,
             billRef: createdBill[0]._id.toString(),
-            status: constant.REQUEST_STATUS.PENDING
+            status: constant.REQUEST_STATUS.PENDING,
           });
 
           res.status(201).json({
             token: newToken,
-            message: 'create a new request successfully'
+            message: 'create a new request successfully',
           });
         }
       } catch (err) {
         res.status(500).json({
           token: newToken,
-          message: 'Internal server error'
+          message: 'Internal server error',
         });
       }
     });
@@ -203,17 +203,17 @@ const getRequests = (req, res) => {
                 Sequelize.col('status'),
                 'Pending',
                 'Accepted',
-                'Reviewed'
+                'Reviewed',
               ),
               ['createdAt', 'DESC'],
-              ['id', 'ASC']
+              ['id', 'ASC'],
             ],
             attributes: ['id', 'billRef', 'status', 'createdAt'],
             include: [
               {
                 model: Carriers,
                 as: 'carrier',
-                attributes: ['name']
+                attributes: ['name'],
               },
               {
                 model: Users,
@@ -223,30 +223,30 @@ const getRequests = (req, res) => {
                   {
                     model: Plans,
                     as: 'plan',
-                    attributes: ['name']
-                  }
-                ]
+                    attributes: ['name'],
+                  },
+                ],
               },
               {
                 model: Operators,
                 as: 'operator',
-                attributes: ['id', 'fullName']
-              }
-            ]
+                attributes: ['id', 'fullName'],
+              },
+            ],
           });
           res.status(200).json({
             token: newToken,
             recordsTotal,
             filteredTotal: requests.length,
-            data: requests
+            data: requests,
           });
         } catch (err) {
           res.status(500).json({
             token: newToken,
-            message: 'Internal server error'
+            message: 'Internal server error',
           });
         }
-      }
+      },
     );
   });
 };
@@ -262,39 +262,39 @@ const getAcceptedRequests = (req, res) => {
           const recordsTotal = await Requests.count({
             where: {
               operatorId: {
-                [op.eq]: operator.id
+                [op.eq]: operator.id,
               },
               [op.or]: [
                 {
                   status: {
-                    [op.eq]: constant.REQUEST_STATUS.ACCEPTED
-                  }
+                    [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
+                  },
                 },
                 {
                   status: {
-                    [op.eq]: constant.REQUEST_STATUS.REVIEWED
-                  }
-                }
-              ]
-            }
+                    [op.eq]: constant.REQUEST_STATUS.REVIEWED,
+                  },
+                },
+              ],
+            },
           });
           const requests = await Requests.findAll({
             where: {
               operatorId: {
-                [op.eq]: operator.id
+                [op.eq]: operator.id,
               },
               [op.or]: [
                 {
                   status: {
-                    [op.eq]: constant.REQUEST_STATUS.ACCEPTED
-                  }
+                    [op.eq]: constant.REQUEST_STATUS.ACCEPTED,
+                  },
                 },
                 {
                   status: {
-                    [op.eq]: constant.REQUEST_STATUS.REVIEWED
-                  }
-                }
-              ]
+                    [op.eq]: constant.REQUEST_STATUS.REVIEWED,
+                  },
+                },
+              ],
             },
             offset: await getPage(req.query.page, req.query.limit),
             limit: Number(req.query.limit) || undefined,
@@ -303,17 +303,17 @@ const getAcceptedRequests = (req, res) => {
                 'field',
                 Sequelize.col('status'),
                 'Accepted',
-                'Reviewed'
+                'Reviewed',
               ),
               ['createdAt', 'DESC'],
-              ['id', 'ASC']
+              ['id', 'ASC'],
             ],
             attributes: ['id', 'billRef', 'status', 'createdAt'],
             include: [
               {
                 model: Carriers,
                 as: 'carrier',
-                attributes: ['name']
+                attributes: ['name'],
               },
               {
                 model: Users,
@@ -323,30 +323,30 @@ const getAcceptedRequests = (req, res) => {
                   {
                     model: Plans,
                     as: 'plan',
-                    attributes: ['name']
-                  }
-                ]
+                    attributes: ['name'],
+                  },
+                ],
               },
               {
                 model: Operators,
                 as: 'operator',
-                attributes: ['id', 'fullName']
-              }
-            ]
+                attributes: ['id', 'fullName'],
+              },
+            ],
           });
           res.status(200).json({
             token: newToken,
             recordsTotal,
             filteredTotal: requests.length,
-            data: requests
+            data: requests,
           });
         } catch (err) {
           res.status(500).json({
             token: newToken,
-            message: 'Internal server error'
+            message: 'Internal server error',
           });
         }
-      }
+      },
     );
   });
 };
@@ -362,15 +362,15 @@ const getRequestById = (req, res) => {
           const request = await Requests.findOne({
             where: {
               id: {
-                [op.eq]: req.params.requestId
-              }
+                [op.eq]: req.params.requestId,
+              },
             },
             attributes: ['id', 'billRef', 'status', 'createdAt'],
             include: [
               {
                 model: Carriers,
                 as: 'carrier',
-                attributes: ['id', 'name']
+                attributes: ['id', 'name'],
               },
               {
                 model: Users,
@@ -381,20 +381,20 @@ const getRequestById = (req, res) => {
                   'phoneNumber',
                   'imagePath',
                   'verified',
-                  'createdAt'
+                  'createdAt',
                 ],
                 include: [
                   {
                     model: Roles,
                     as: 'role',
-                    attributes: ['id', 'name']
+                    attributes: ['id', 'name'],
                   },
                   {
                     model: Plans,
                     as: 'plan',
-                    attributes: ['id', 'name']
-                  }
-                ]
+                    attributes: ['id', 'name'],
+                  },
+                ],
               },
               {
                 model: Operators,
@@ -406,55 +406,55 @@ const getRequestById = (req, res) => {
                   'imagePath',
                   'verified',
                   'activated',
-                  'createdAt'
+                  'createdAt',
                 ],
                 include: [
                   {
                     model: Roles,
                     as: 'role',
-                    attributes: ['id', 'name']
-                  }
-                ]
+                    attributes: ['id', 'name'],
+                  },
+                ],
               },
               {
                 model: Memos,
-                as: 'memo'
+                as: 'memo',
               },
               {
                 model: Offers,
-                as: 'offer'
-              }
-            ]
+                as: 'offer',
+              },
+            ],
           });
 
           if (!request) {
             res.status(400).json({
               token: newToken,
-              message: 'request not found'
+              message: 'request not found',
             });
           } else if (!request.operator) {
             res.status(403).json({
               token: newToken,
-              message: 'request is not accepted'
+              message: 'request is not accepted',
             });
           } else if (request.operator.id !== operator.id) {
             res.status(403).json({
               token: newToken,
-              message: 'request is not your'
+              message: 'request is not your',
             });
           } else {
             res.status(200).json({
               token: newToken,
-              data: request
+              data: request,
             });
           }
         } catch (err) {
           res.status(500).json({
             token: newToken,
-            message: 'Internal server error'
+            message: 'Internal server error',
           });
         }
-      }
+      },
     );
   });
 };
@@ -470,30 +470,30 @@ const requestAcceptance = (req, res) => {
           const request = await Requests.findOne({
             where: {
               id: {
-                [op.eq]: req.params.requestId
-              }
-            }
+                [op.eq]: req.params.requestId,
+              },
+            },
           });
 
           if (!request) {
             res.status(400).json({
               token: newToken,
-              message: 'request not found'
+              message: 'request not found',
             });
           } else if (request.operatorId) {
             res.status(403).json({
               token: newToken,
-              message: 'request has accepted'
+              message: 'request has accepted',
             });
           } else {
             await request.update({
               operatorId: operator.id,
-              status: 'Accepted'
+              status: 'Accepted',
             });
 
             res.status(200).json({
               token: newToken,
-              message: 'accept request successfully'
+              message: 'accept request successfully',
             });
 
             await createNewChatRoom(request.id, request.userId, operator.id);
@@ -501,25 +501,25 @@ const requestAcceptance = (req, res) => {
               {
                 type: config.notification.acceptance.type,
                 title: config.notification.acceptance.title,
-                body: config.notification.acceptance.body
+                body: config.notification.acceptance.body,
               },
-              request.userId
+              request.userId,
             );
           }
         } catch (err) {
           if (err.errors) {
             res.status(400).json({
               token: newToken,
-              message: err.errors[0].message
+              message: err.errors[0].message,
             });
           } else {
             res.status(500).json({
               token: newToken,
-              message: 'Internal server error'
+              message: 'Internal server error',
             });
           }
         }
-      }
+      },
     );
   });
 };
@@ -536,72 +536,72 @@ const putRequestMemoById = (req, res) => {
             const request = await Requests.findOne({
               where: {
                 id: {
-                  [op.eq]: req.params.requestId
-                }
-              }
+                  [op.eq]: req.params.requestId,
+                },
+              },
             });
 
             if (!request) {
               res.status(400).json({
                 token: newToken,
-                message: 'request not found'
+                message: 'request not found',
               });
             } else if (!request.operatorId) {
               res.status(403).json({
                 token: newToken,
-                message: 'request has not accepted'
+                message: 'request has not accepted',
               });
             } else if (request.operatorId !== operator.id) {
               res.status(403).json({
                 token: newToken,
-                message: 'request is not your'
+                message: 'request is not your',
               });
             } else if (!request.memoId) {
               const newMemo = await Memos.create({
-                message: req.body.message
+                message: req.body.message,
               });
               await request.update({
-                memoId: newMemo.id
+                memoId: newMemo.id,
               });
 
               res.status(200).json({
                 token: newToken,
-                message: 'update memo successfully'
+                message: 'update memo successfully',
               });
             } else {
               await Memos.update(
                 {
-                  message: req.body.message
+                  message: req.body.message,
                 },
                 {
                   where: {
                     id: {
-                      [op.eq]: request.memoId
-                    }
-                  }
-                }
+                      [op.eq]: request.memoId,
+                    },
+                  },
+                },
               );
 
               res.status(200).json({
                 token: newToken,
-                message: 'update memo successfully'
+                message: 'update memo successfully',
               });
             }
           } catch (err) {
             if (err.errors) {
               res.status(400).json({
                 token: newToken,
-                message: err.errors[0].message
+                message: err.errors[0].message,
               });
             } else {
               res.status(500).json({
                 token: newToken,
-                message: 'Internal server error'
+                message: 'Internal server error',
               });
             }
           }
         });
-      }
+      },
     );
   });
 };
@@ -622,71 +622,71 @@ const createRequestReviewById = (req, res) => {
               const request = await Requests.findOne({
                 where: {
                   id: {
-                    [op.eq]: req.params.requestId
-                  }
-                }
+                    [op.eq]: req.params.requestId,
+                  },
+                },
               });
 
               if (!request) {
                 res.status(400).json({
                   token: newToken,
-                  message: 'request not found'
+                  message: 'request not found',
                 });
               } else if (!request.operatorId) {
                 res.status(403).json({
                   token: newToken,
-                  message: 'request has not accepted'
+                  message: 'request has not accepted',
                 });
               } else if (request.operatorId !== operator.id) {
                 res.status(403).json({
                   token: newToken,
-                  message: 'request is not your'
+                  message: 'request is not your',
                 });
               } else if (request.offerId) {
                 res.status(403).json({
                   token: newToken,
-                  message: 'request has reviewed'
+                  message: 'request has reviewed',
                 });
               } else {
                 const newOffer = await Offers.create({
                   review: req.body.review,
-                  suggestion: req.body.suggestion
+                  suggestion: req.body.suggestion,
                 });
                 await request.update({
                   offerId: newOffer.id,
-                  status: constant.REQUEST_STATUS.REVIEWED
+                  status: constant.REQUEST_STATUS.REVIEWED,
                 });
 
                 res.status(201).json({
                   token: newToken,
-                  message: 'update review successfully'
+                  message: 'update review successfully',
                 });
                 notificationService.sendNotification(
                   {
                     type: config.notification.review.type,
                     title: config.notification.review.title,
                     body: config.notification.review.body,
-                    data: newOffer.dataValues
+                    data: newOffer.dataValues,
                   },
-                  request.userId
+                  request.userId,
                 );
               }
             } catch (err) {
               if (err.errors) {
                 res.status(400).json({
                   token: newToken,
-                  message: err.errors[0].message
+                  message: err.errors[0].message,
                 });
               } else {
                 res.status(500).json({
                   token: newToken,
-                  message: 'Internal server error'
+                  message: 'Internal server error',
                 });
               }
             }
-          }
+          },
         );
-      }
+      },
     );
   });
 };
@@ -703,15 +703,15 @@ const getBillByUserId = (req, res) => {
             attributes: ['id', 'billRef'],
             where: {
               userId: {
-                [op.eq]: req.params.userId
-              }
-            }
+                [op.eq]: req.params.userId,
+              },
+            },
           });
 
           const bills = await BillSchema.find({
             _id: {
-              $in: await foundbills.map(bill => bill.billRef)
-            }
+              $in: await foundbills.map(bill => bill.billRef),
+            },
           });
 
           res.status(200).json(bills);
@@ -719,16 +719,16 @@ const getBillByUserId = (req, res) => {
           if (err.errors) {
             res.status(400).json({
               token: newToken,
-              message: err.errors[0].message
+              message: err.errors[0].message,
             });
           } else {
             res.status(500).json({
               token: newToken,
-              message: 'Internal server error'
+              message: 'Internal server error',
             });
           }
         }
-      }
+      },
     );
   });
 };
@@ -744,8 +744,8 @@ const getReviewByUserId = (req, res) => {
           const result = await Users.findOne({
             where: {
               id: {
-                [op.eq]: req.params.userId
-              }
+                [op.eq]: req.params.userId,
+              },
             },
             attributes: ['id', 'fullName', 'imagePath'],
             order: [['request', 'createdAt', 'DESC']],
@@ -756,48 +756,48 @@ const getReviewByUserId = (req, res) => {
                 attributes: ['billRef', 'createdAt'],
                 where: {
                   offerId: {
-                    [op.ne]: null
-                  }
+                    [op.ne]: null,
+                  },
                 },
                 include: [
                   {
                     model: Operators,
                     as: 'operator',
-                    attributes: ['id', 'fullName', 'imagePath']
+                    attributes: ['id', 'fullName', 'imagePath'],
                   },
                   {
                     model: Carriers,
                     as: 'carrier',
-                    attributes: ['id', 'name']
+                    attributes: ['id', 'name'],
                   },
                   {
                     model: Offers,
                     as: 'offer',
-                    attributes: ['review', 'suggestion', 'liked', 'createdAt']
-                  }
-                ]
-              }
-            ]
+                    attributes: ['review', 'suggestion', 'liked', 'createdAt'],
+                  },
+                ],
+              },
+            ],
           });
 
           res.status(200).json({
             token: newToken,
-            data: result
+            data: result,
           });
         } catch (err) {
           if (err.errors) {
             res.status(400).json({
               token: newToken,
-              message: err.errors[0].message
+              message: err.errors[0].message,
             });
           } else {
             res.status(500).json({
               token: newToken,
-              message: 'Internal server error'
+              message: 'Internal server error',
             });
           }
         }
-      }
+      },
     );
   });
 };
@@ -809,22 +809,22 @@ const getReviewByRequestId = (req, res) => {
           attributes: ['id', 'billRef'],
           where: {
             userId: {
-              [op.eq]: user.id
-            }
+              [op.eq]: user.id,
+            },
           },
           include: [
             {
               model: Carriers,
               as: 'carrier',
-              attributes: ['id', 'name']
+              attributes: ['id', 'name'],
             },
             {
               model: Offers,
               as: 'offer',
-              attributes: ['review', 'suggestion', 'liked', 'createdAt']
-            }
+              attributes: ['review', 'suggestion', 'liked', 'createdAt'],
+            },
           ],
-          order: [['id', 'DESC']]
+          order: [['id', 'DESC']],
         });
 
         const bill = await BillSchema.findById(lastRequest.billRef)
@@ -835,18 +835,18 @@ const getReviewByRequestId = (req, res) => {
 
         res.status(200).json({
           token: newToken,
-          data: lastRequest
+          data: lastRequest,
         });
       } catch (err) {
         if (err.errors) {
           res.status(400).json({
             token: newToken,
-            message: err.errors[0].message
+            message: err.errors[0].message,
           });
         } else {
           res.status(500).json({
             token: newToken,
-            message: 'Internal server error'
+            message: 'Internal server error',
           });
         }
       }
@@ -860,50 +860,50 @@ const likeReviewByRequestId = (req, res) => {
         const foundRequest = await Requests.findOne({
           where: {
             id: {
-              [op.eq]: req.params.requestId
-            }
-          }
+              [op.eq]: req.params.requestId,
+            },
+          },
         });
 
         if (!foundRequest) {
           res.status(400).json({
             token: newToken,
-            message: 'request not found'
+            message: 'request not found',
           });
         } else if (foundRequest.userId !== user.id) {
           res.status(403).json({
             token: newToken,
-            message: 'forbidden for request, request is not your'
+            message: 'forbidden for request, request is not your',
           });
         } else {
           await Offers.update(
             {
-              liked: true
+              liked: true,
             },
             {
               where: {
                 id: {
-                  [op.eq]: foundRequest.offerId
-                }
-              }
-            }
+                  [op.eq]: foundRequest.offerId,
+                },
+              },
+            },
           );
 
           res.status(200).json({
             token: newToken,
-            message: 'like review successfully'
+            message: 'like review successfully',
           });
         }
       } catch (err) {
         if (err.errors) {
           res.status(400).json({
             token: newToken,
-            message: err.errors[0].message
+            message: err.errors[0].message,
           });
         } else {
           res.status(500).json({
             token: newToken,
-            message: 'Internal server error'
+            message: 'Internal server error',
           });
         }
       }
@@ -917,50 +917,50 @@ const dislikeReviewByRequestId = (req, res) => {
         const foundRequest = await Requests.findOne({
           where: {
             id: {
-              [op.eq]: req.params.requestId
-            }
-          }
+              [op.eq]: req.params.requestId,
+            },
+          },
         });
 
         if (!foundRequest) {
           res.status(400).json({
             token: newToken,
-            message: 'request not found'
+            message: 'request not found',
           });
         } else if (foundRequest.userId !== user.id) {
           res.status(403).json({
             token: newToken,
-            message: 'forbidden for request, request is not your'
+            message: 'forbidden for request, request is not your',
           });
         } else {
           await Offers.update(
             {
-              liked: false
+              liked: false,
             },
             {
               where: {
                 id: {
-                  [op.eq]: foundRequest.offerId
-                }
-              }
-            }
+                  [op.eq]: foundRequest.offerId,
+                },
+              },
+            },
           );
 
           res.status(200).json({
             token: newToken,
-            message: 'dislike review successfully'
+            message: 'dislike review successfully',
           });
         }
       } catch (err) {
         if (err.errors) {
           res.status(400).json({
             token: newToken,
-            message: err.errors[0].message
+            message: err.errors[0].message,
           });
         } else {
           res.status(500).json({
             token: newToken,
-            message: 'Internal server error'
+            message: 'Internal server error',
           });
         }
       }
@@ -981,5 +981,5 @@ module.exports = {
   getReviewByRequestId,
   likeReviewByRequestId,
   dislikeReviewByRequestId,
-  createNewBill
+  createNewBill,
 };
