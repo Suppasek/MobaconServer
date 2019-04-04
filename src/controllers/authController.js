@@ -1,4 +1,3 @@
-// const path = require('path');
 const moment = require('moment');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
@@ -25,10 +24,6 @@ const {
   ForgetPasswordCodes,
 } = require('../models');
 
-// METHODS
-
-
-// WEB AUTHENTICATION
 const webLogin = async (req, res) => {
   passport.authenticate('web-login', async (error, operator, info) => {
     if (error) {

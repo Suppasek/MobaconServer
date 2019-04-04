@@ -1,5 +1,5 @@
 module.exports = {
-  baseUrl: 'localhost',
+  host: '0.0.0.0',
   httpPort: 8800,
   socketPort: 8888,
   analyticUrl: 'http://localhost:3000',
