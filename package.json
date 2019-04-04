@@ -39,6 +39,7 @@
     "random-number": "^0.0.9",
     "random-string": "^0.2.0",
     "request-promise": "^4.2.4",
+    "rotating-file-stream": "^1.4.0",
     "sequelize": "^4.41.2",
     "socket.io": "^2.1.1",
     "twilio": "^3.23.2",
