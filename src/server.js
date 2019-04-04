@@ -4,17 +4,17 @@ const http = require('http');
 const morgan = require('morgan');
 const express = require('express');
 const bodyParser = require('body-parser');
+const xmlParser = require('./middlewares/xmlParser');
 
 const config = require('./config/APIConfig');
-const Router = require('./routes/router');
-const xmlParser = require('./middlewares/xmlParser');
+const Router = require('./routes');
 const socket = require('./controllers/services/socketService');
 
 const app = express()
+  .use(xmlParser)
   .use(cors())
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
-  .use(xmlParser)
   .use(morgan('combined'))
   .use('/mobacon/api/', Router);
 

@@ -71,7 +71,7 @@ const upgradePlan = (req, res) => {
     passportService.mobileJwtAuthorize(req, res, async (user, newToken) => {
       validationHelper.bodyValidator(req, res, ['message'], async () => {
         try {
-
+          // TODO upgrade user to premium plan
         } catch (err) {
           res.status(500).json({
             token: newToken,
