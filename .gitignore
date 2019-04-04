@@ -73,5 +73,6 @@ typings/
 .serverless
 
 # mobacon-server
-/assets/
+assets/images/operators
+assets/images/users
 src/mock_up/billIds.json
