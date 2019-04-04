@@ -24,7 +24,10 @@ router.get('/web/operators', operatorController.getOperators);
 router.get('/web/operator/:userId', operatorController.getOperatorById);
 router.post('/web/operator', authController.createOperator);
 router.patch('/web/operator', authController.editOperator);
-router.patch('/web/operator/activation/:userId', authController.activateOperator);
+router.patch(
+  '/web/operator/activation/:userId',
+  authController.activateOperator
+);
 router.patch('/web/operator/password', authController.changePassword);
 
 router.get('/web/plans', planController.getPlans);
@@ -35,16 +38,34 @@ router.get('/web/request/bills/:userId', requestController.getBillByUserId);
 router.get('/web/request/review/:userId', requestController.getReviewByUserId);
 router.get('/web/requests/accepted', requestController.getAcceptedRequests);
 router.get('/web/request/:requestId', requestController.getRequestById);
-router.patch('/web/request/:requestId/acceptance', requestController.requestAcceptance);
-router.put('/web/request/:requestId/memo', requestController.putRequestMemoById);
-router.post('/web/request/:requestId/review', requestController.createRequestReviewById);
+router.patch(
+  '/web/request/:requestId/acceptance',
+  requestController.requestAcceptance
+);
+router.put(
+  '/web/request/:requestId/memo',
+  requestController.putRequestMemoById
+);
+router.post(
+  '/web/request/:requestId/review',
+  requestController.createRequestReviewById
+);
 router.get('/web/request/chat/:userId', chatController.getChatHistoryByUserId);
-router.get('/web/request/chat/detail/:requestId/:existChat', chatController.getOldChatByRequestId);
+router.get(
+  '/web/request/chat/detail/:requestId/:existChat',
+  chatController.getOldChatByRequestId
+);
 
 router.get('/web/dashboard/user', dashboardController.getUserForDashboard);
-router.get('/web/dashboard/request', dashboardController.getRequestForDashboard);
+router.get(
+  '/web/dashboard/request',
+  dashboardController.getRequestForDashboard
+);
 router.get('/web/dashboard/chat', dashboardController.getChatForDashboard);
-router.get('/web/dashboard/goodrate', dashboardController.getGoodRateForDashboard);
+router.get(
+  '/web/dashboard/goodrate',
+  dashboardController.getGoodRateForDashboard
+);
 
 // API ROUTING FOR MOBILE APPLICATION
 router.post('/mobile/signup', authController.mobileSignup);
@@ -56,8 +77,14 @@ router.patch('/mobile/user/family', planController.updateFamily);
 
 router.post('/mobile/request/:carrierId', requestController.createRequest);
 router.get('/mobile/request/review', requestController.getReviewByRequestId);
-router.patch('/mobile/request/review/:requestId/like', requestController.likeReviewByRequestId);
-router.patch('/mobile/request/review/:requestId/dislike', requestController.dislikeReviewByRequestId);
+router.patch(
+  '/mobile/request/review/:requestId/like',
+  requestController.likeReviewByRequestId
+);
+router.patch(
+  '/mobile/request/review/:requestId/dislike',
+  requestController.dislikeReviewByRequestId
+);
 
 router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 
@@ -65,7 +92,10 @@ router.get('/mobile/report/history', reportHistoryController.getReportHistory);
 router.post('/web/verification', authController.sendVerificationEmail);
 router.patch('/web/verification', authController.verifyWithConfirmationToken);
 router.post('/web/changePassword', authController.sendChangePasswordEmail);
-router.patch('/web/changePassword', authController.changePasswordwithChangePasswordToken);
+router.patch(
+  '/web/changePassword',
+  authController.changePasswordwithChangePasswordToken
+);
 
 // API ROUTING FOR VALIDATE IN APP PURCHASE
 router.patch('/mobile/iap/apple');
@@ -75,21 +105,30 @@ router.patch('/mobile/iap/google');
 router.post('/mobile/user/verification', authController.sendVerificationOTP);
 router.patch('/mobile/user/verification', authController.verifyUserWithOTP);
 router.post('/mobile/changePassword', authController.sendChangePasswordSms);
-router.patch('/mobile/changePassword', authController.changePasswordwithChangePasswordCode);
+router.patch(
+  '/mobile/changePassword',
+  authController.changePasswordwithChangePasswordCode
+);
 
 // GET IMAGE FILE
-router.get('/image/profile/default/:imageName', imageController.getDefaultProfileImage);
+router.get(
+  '/image/profile/default/:imageName',
+  imageController.getDefaultProfileImage
+);
 router.get('/web/operator/image/:imageName', imageController.getOperatorImage);
 router.get('/web/user/image/:imageName', imageController.getUserImage);
 
 // TEST  NOTIFICATION
 router.get('/test/notification/acceptance/:userId', async (req, res) => {
   try {
-    await notificationService.sendNotification({
-      type: config.notification.acceptance.type,
-      title: config.notification.acceptance.title,
-      body: config.notification.acceptance.body,
-    }, req.params.userId);
+    await notificationService.sendNotification(
+      {
+        type: config.notification.acceptance.type,
+        title: config.notification.acceptance.title,
+        body: config.notification.acceptance.body
+      },
+      req.params.userId
+    );
     res.send('success');
   } catch (err) {
     res.send(err);
@@ -97,23 +136,38 @@ router.get('/test/notification/acceptance/:userId', async (req, res) => {
 });
 router.get('/test/notification/review/:userId', async (req, res) => {
   try {
-    await notificationService.sendNotification({
-      type: config.notification.review.type,
-      title: config.notification.review.title,
-      body: config.notification.review.body,
-      data: {
-        id: 111,
-        review: 'test review for notification mock up',
-        suggestion: 'test suggestion for notification mock up',
-        createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss'),
+    await notificationService.sendNotification(
+      {
+        type: config.notification.review.type,
+        title: config.notification.review.title,
+        body: config.notification.review.body,
+        data: {
+          id: 111,
+          review: 'test review for notification mock up',
+          suggestion: 'test suggestion for notification mock up',
+          createdAt: moment.utc().format('YYYY-MM-DD HH:mm:ss')
+        }
       },
-    }, req.params.userId);
+      req.params.userId
+    );
     res.send('success');
   } catch (err) {
     res.send(err);
   }
 });
 
+router.post('/test/xml/:carrierId', async (req, res) => {
+  const user = {
+    id: '1234'
+  };
+  const createdBill = await requestController.createNewBill(
+    user.id,
+    req.params.carrierId,
+    req.rawBody
+  );
+  res.json(createdBill);
+});
+
 module.exports = {
-  Router: router,
+  Router: router
 };
