@@ -6,12 +6,10 @@ const socketio = require('socket.io');
 const sequelize = require('sequelize');
 const { forEach } = require('p-iteration');
 
+const CustomError = require('./CustomError');
 const apiConfig = require('../../config/APIConfig');
 const constant = require('../../config/APIConstant');
 const tokenHelper = require('../../helpers/tokenHelper');
-
-const secret = fs.readFileSync(path.join(__dirname, '../../config/secret.key'));
-
 const {
   Roles,
   Operators,
@@ -26,19 +24,12 @@ const SocketSchema = require('../../mongoSchema/socketSchema');
 const ChatRoomSchema = require('../../mongoSchema/chatRoomSchema');
 const ChatMessageSchema = require('../../mongoSchema/chatMessageSchema');
 
+const secret = fs.readFileSync(path.join(__dirname, '../../config/secret.key'));
+
 const op = sequelize.Op;
 apiConfig.secret = secret;
 
 let IO;
-
-// ClASSES
-class CustomError extends Error {
-  constructor(name, message) {
-    super();
-    this.name = name;
-    this.message = message;
-  }
-}
 
 // FOR MOCKUP
 const generateChatHistory = (userId, operatorId, operatorRoleId) => [{
@@ -937,7 +928,7 @@ const searchChatRoom = async (socket, payload, socketCallback) => {
   }
 };
 
-// MOTHODS FOR NOTIFICATION
+// MOBILE NOTIFICATION
 const getUserSocketId = async (userId) => {
   try {
     const socketIds = (await SocketSchema.find({
@@ -956,6 +947,43 @@ const sendNotification = async (data, userId) => {
   forEach(socketIds, (socketId) => {
     IO.sockets.connected[socketId].emit('notification', data);
   });
+};
+// WEB NOTIFICATION
+const getUserId = (userId) => (!userId ? {} : { userId });
+const sendWebNotification = async (event, data, userId = null) => {
+  const socketIds = (await SocketSchema.find({
+    ...getUserId(userId),
+    roleId: {
+      $ne: constant.ROLE.USER,
+    },
+  })).map((e) => e.socketId);
+
+  forEach(socketIds, (socketId) => {
+    IO.sockets.connected[socketId].emit(event, data);
+  });
+};
+
+// GET #NEW-REQUESTS
+const getCountOfNewRequest = async (socketCallback) => {
+  try {
+    const newRequest = await Requests.count({
+      where: {
+        status: {
+          [op.eq]: 'Pending',
+        },
+      },
+    });
+
+    socketCallback({
+      ok: true,
+      data: newRequest,
+    });
+  } catch (err) {
+    socketCallback({
+      ok: false,
+      error: err,
+    });
+  }
 };
 
 // SERVER
@@ -986,6 +1014,7 @@ const chatServer = (server) => {
         .on('web-search-chatroom', (payload, socketCallback) => payloadValidator(socketCallback, payload, ['searchText', 'existChatList'], () => {
           searchChatRoom(socket, payload, socketCallback);
         }))
+        .on('web-new-request', (payload, socketCallback) => getCountOfNewRequest(socketCallback))
         .on('disconnect', () => removeSocketId(socket.id));
     });
   });
@@ -994,4 +1023,5 @@ const chatServer = (server) => {
 module.exports = {
   chat: chatServer,
   sendNotification,
+  sendWebNotification,
 };
