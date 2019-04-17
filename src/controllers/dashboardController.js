@@ -9,7 +9,6 @@ const validationHelper = require('../helpers/validationHelper');
 
 const op = Sequelize.Op;
 
-// METHODS
 // GET DAYS FOR FILTERING
 const getDayInLastOneMonth = () => {
   const days = [];
