@@ -950,9 +950,9 @@ const sendNotification = async (data, userId) => {
 };
 // WEB NOTIFICATION
 const getUserId = (userId) => (!userId ? {} : { userId });
-const sendWebNotification = async (event, data, userId = null) => {
+const sendWebNotification = async (event, data, operatorId = null) => {
   const socketIds = (await SocketSchema.find({
-    ...getUserId(userId),
+    ...getUserId(operatorId),
     roleId: {
       $ne: constant.ROLE.USER,
     },
@@ -966,7 +966,7 @@ const sendWebNotification = async (event, data, userId = null) => {
 // GET #NEW-REQUESTS
 const getCountOfNewRequest = async (socketCallback) => {
   try {
-    const newRequest = await Requests.count({
+    const countOfNewRequest = await Requests.count({
       where: {
         status: {
           [op.eq]: 'Pending',
@@ -976,7 +976,7 @@ const getCountOfNewRequest = async (socketCallback) => {
 
     socketCallback({
       ok: true,
-      data: newRequest,
+      data: countOfNewRequest,
     });
   } catch (err) {
     socketCallback({

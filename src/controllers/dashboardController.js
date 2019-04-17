@@ -9,7 +9,6 @@ const validationHelper = require('../helpers/validationHelper');
 
 const op = Sequelize.Op;
 
-// METHODS
 // GET DAYS FOR FILTERING
 const getDayInLastOneMonth = () => {
   const days = [];
@@ -43,13 +42,6 @@ const getDayInLastMonth = (numberOfMonth) => {
 
 // GET TOTAL INFORMATION
 const getTotalInformation = async () => {
-  const newRequest = Requests.count({
-    where: {
-      status: {
-        [op.eq]: 'Pending',
-      },
-    },
-  });
   const user = Users.count();
   const request = Requests.count();
   const chat = ChatRoomSchema.countDocuments();
@@ -74,7 +66,6 @@ const getTotalInformation = async () => {
     chat,
     good,
     bad,
-    newRequest,
   ]);
 
   return {
@@ -85,64 +76,7 @@ const getTotalInformation = async () => {
       good: result[3] || 0,
       bad: result[4] || 0,
     },
-    newRequest: result[5] || 0,
   };
-};
-
-// FOR #NEW-REQUESTS
-const getNewRequestDashboardInformationOneMonth = async () => {
-  const days = getDayInLastOneMonth();
-
-  const result = await Promise.all(days.map(async (e) => {
-    const count = await Requests.count({
-      where: {
-        createdAt: {
-          [op.between]: [`${e} 00:00:00`, `${e} 23:59:59`],
-        },
-      },
-    });
-
-    return {
-      x: e,
-      y: count,
-    };
-  }));
-
-  return result;
-};
-const getNewRequestDashboardInformationByNumberOfMonth = async (numberOfMonth) => {
-  const months = getDayInLastMonth(numberOfMonth);
-
-  const result = await Promise.all(months.map(async (e) => {
-    const count = await Requests.count({
-      where: {
-        createdAt: {
-          [op.between]: [`${e.startAt}`, `${e.endAt}`],
-        },
-      },
-    });
-
-    return {
-      x: e.startAt,
-      y: count,
-    };
-  }));
-
-  return result;
-};
-const getNewRequestDashboardInformation = async (month) => {
-  let result = [];
-  if (month === '1') {
-    result = await getNewRequestDashboardInformationOneMonth();
-  } else if (month === '3') {
-    result = await getNewRequestDashboardInformationByNumberOfMonth(3);
-  } else if (month === '6') {
-    result = await getNewRequestDashboardInformationByNumberOfMonth(6);
-  } else if (month === '12') {
-    result = await getNewRequestDashboardInformationByNumberOfMonth(12);
-  }
-
-  return result;
 };
 
 // FOR #USERS
@@ -422,26 +356,6 @@ const getGoodBadRatioDashboardInformation = async (month) => {
 };
 
 // CONTROLLER METHODS
-const getNewRequestForDashboard = async (req, res) => {
-  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
-    validationHelper.operatorValidator(req, res, operator, newToken, async () => {
-      try {
-        const result = await getNewRequestDashboardInformation(req.query.month);
-        const total = await getTotalInformation();
-        res.status(200).json({
-          token: newToken,
-          total,
-          data: result,
-        });
-      } catch (err) {
-        res.status(500).json({
-          token: newToken,
-          message: 'Internal server error',
-        });
-      }
-    });
-  });
-};
 const getUserForDashboard = async (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(req, res, operator, newToken, async () => {
@@ -524,7 +438,6 @@ const getGoodRateForDashboard = async (req, res) => {
 };
 
 module.exports = {
-  getNewRequestForDashboard,
   getUserForDashboard,
   getRequestForDashboard,
   getChatForDashboard,

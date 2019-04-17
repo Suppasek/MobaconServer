@@ -12,13 +12,13 @@ const {
   Offers,
   Plans,
 } = require('../models');
-const BillSchema = require('../mongoSchema/billSchema');
-const ChatRoomSchema = require('../mongoSchema/chatRoomSchema');
 const config = require('../config/APIConfig');
 const constant = require('../config/APIConstant');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
 const notificationService = require('./services/socketService');
+const BillSchema = require('../mongoSchema/billSchema');
+const ChatRoomSchema = require('../mongoSchema/chatRoomSchema');
 
 const op = Sequelize.Op;
 
@@ -141,6 +141,16 @@ const deactiveChatRoom = async userId => {
     },
   );
 };
+const getCountOfNewRequest = async () => {
+  const countOfNewRequest = await Requests.count({
+    where: {
+      status: {
+        [op.eq]: 'Pending',
+      },
+    },
+  });
+  return countOfNewRequest;
+};
 
 // CONTROLLER METHODS
 const createRequest = (req, res) => {
@@ -173,6 +183,11 @@ const createRequest = (req, res) => {
           res.status(201).json({
             token: newToken,
             message: 'create a new request successfully',
+          });
+
+          notificationService.sendWebNotification('web-new-request', {
+            ok: true,
+            data: await getCountOfNewRequest(),
           });
         }
       } catch (err) {
@@ -496,8 +511,8 @@ const requestAcceptance = (req, res) => {
               message: 'accept request successfully',
             });
 
-            await createNewChatRoom(request.id, request.userId, operator.id);
-            await notificationService.sendNotification(
+            createNewChatRoom(request.id, request.userId, operator.id);
+            notificationService.sendNotification(
               {
                 type: config.notification.acceptance.type,
                 title: config.notification.acceptance.title,
@@ -505,6 +520,11 @@ const requestAcceptance = (req, res) => {
               },
               request.userId,
             );
+
+            notificationService.sendWebNotification('web-new-request', {
+              ok: true,
+              data: await getCountOfNewRequest(),
+            });
           }
         } catch (err) {
           if (err.errors) {
