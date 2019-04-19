@@ -11,6 +11,7 @@ const config = require('./config/APIConfig');
 const xmlParser = require('./middlewares/xmlParser');
 const socket = require('./controllers/services/socketService');
 const accessLogStream = require('./logSystem/accessLogStream');
+const schedulerService = require('./controllers/services/schedulerService');
 
 const app = express()
   .use(xmlParser)
@@ -23,6 +24,7 @@ const app = express()
 const httpServer = http.createServer(app).listen(config.httpPort, () => {
   mongodb.createClient();
   socket.chat(httpServer);
+  schedulerService.set();
   console.clear();
   console.log(`START SERVER ON ${config.host}:${config.httpPort}`);
 });
