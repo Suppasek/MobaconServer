@@ -55,8 +55,6 @@ const generateChatRoom = (userId, operatorId, requestId, messageId) => ({
   createdAt: '2018-12-05 10:00:00',
   updatedAt: '2018-12-08 00:00:03',
 });
-
-// METHODS FOR CHAT
 const clear = async () => {
   await ChatRoomSchema.deleteMany({});
   await ChatMessageSchema.deleteMany({});
@@ -87,6 +85,34 @@ const clear = async () => {
 const clearSockets = async () => {
   await SocketSchema.deleteMany({});
 };
+
+// MOBILE NOTIFICATION
+const getUserTokenFromNotificationService = async (userId) => {
+  const subscriberTokens = await SubscriberSchema.find({
+    userId,
+  });
+  return subscriberTokens.map((e) => e.token);
+};
+const sendNotification = async (data, userId) => {
+  const userTokens = await getUserTokenFromNotificationService(userId);
+  notificationService.sendNotification(data, userTokens);
+};
+// WEB NOTIFICATION
+const getUserId = (userId) => (!userId ? {} : { userId });
+const sendWebNotification = async (event, data, operatorId = null) => {
+  const socketIds = (await SocketSchema.find({
+    ...getUserId(operatorId),
+    roleId: {
+      $ne: constant.ROLE.USER,
+    },
+  })).map((e) => e.socketId);
+
+  forEach(socketIds, (socketId) => {
+    IO.sockets.connected[socketId].emit(event, data);
+  });
+};
+
+// METHODS FOR CHAT
 const storeSocketId = async (socketId, user) => {
   await SocketSchema.create({
     userId: user.id,
@@ -337,7 +363,7 @@ const sendChatToOperator = async (io, requestId, operatorId, userId, chat, newCh
   });
 };
 const sendChatToUser = async (io, requestId, operatorId, userId, chat) => {
-  const operatorSocketIds = await SocketSchema.find({
+  const userSocketIds = await SocketSchema.find({
     userId,
     roleId: constant.ROLE.USER,
   });
@@ -353,7 +379,7 @@ const sendChatToUser = async (io, requestId, operatorId, userId, chat) => {
       attributes: ['id', 'name'],
     }],
   });
-  forEach(operatorSocketIds, (targetSocketId) => {
+  forEach(userSocketIds, (targetSocketId) => {
     io.sockets.connected[targetSocketId.socketId].emit('web-chat', {
       ok: true,
       data: {
@@ -367,6 +393,18 @@ const sendChatToUser = async (io, requestId, operatorId, userId, chat) => {
       },
     });
   });
+  sendNotification({
+    ok: true,
+    data: {
+      _id: chat._id,
+      message: chat.message,
+      request: {
+        id: request.id,
+        carrier: request.dataValues.carrier.dataValues,
+      },
+      createdAt: chat.createdAt,
+    },
+  }, userId);
 };
 const sendMobileSelfChat = async (io, requestId, operatorId, userId, chat, selfSocketId) => {
   const selfSocketIds = await SocketSchema.find({
@@ -928,32 +966,6 @@ const searchChatRoom = async (socket, payload, socketCallback) => {
       error: err,
     });
   }
-};
-
-// MOBILE NOTIFICATION
-const getUserTokenFromNotificationService = async (userId) => {
-  const subscriberTokens = await SubscriberSchema.find({
-    userId,
-  });
-  return subscriberTokens.map((e) => e.token);
-};
-const sendNotification = async (data, userId) => {
-  const userTokens = await getUserTokenFromNotificationService(userId);
-  notificationService.sendNotification(data, userTokens);
-};
-// WEB NOTIFICATION
-const getUserId = (userId) => (!userId ? {} : { userId });
-const sendWebNotification = async (event, data, operatorId = null) => {
-  const socketIds = (await SocketSchema.find({
-    ...getUserId(operatorId),
-    roleId: {
-      $ne: constant.ROLE.USER,
-    },
-  })).map((e) => e.socketId);
-
-  forEach(socketIds, (socketId) => {
-    IO.sockets.connected[socketId].emit(event, data);
-  });
 };
 
 // GET #NEW-REQUESTS
