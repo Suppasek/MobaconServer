@@ -10,6 +10,7 @@ const CustomError = require('./CustomError');
 const apiConfig = require('../../config/APIConfig');
 const constant = require('../../config/APIConstant');
 const tokenHelper = require('../../helpers/tokenHelper');
+const notificationService = require('./notificationService');
 const {
   Roles,
   Operators,
@@ -22,6 +23,7 @@ const {
 } = require('../../models');
 const SocketSchema = require('../../mongoSchema/socketSchema');
 const ChatRoomSchema = require('../../mongoSchema/chatRoomSchema');
+const SubscriberSchema = require('../../mongoSchema/subscriberSchema');
 const ChatMessageSchema = require('../../mongoSchema/chatMessageSchema');
 
 const secret = fs.readFileSync(path.join(__dirname, '../../config/secret.key'));
@@ -929,24 +931,15 @@ const searchChatRoom = async (socket, payload, socketCallback) => {
 };
 
 // MOBILE NOTIFICATION
-const getUserSocketId = async (userId) => {
-  try {
-    const socketIds = (await SocketSchema.find({
-      userId,
-      roleId: constant.ROLE.USER,
-    })).map((e) => e.socketId);
-
-    return socketIds;
-  } catch (err) {
-    return err;
-  }
+const getUserTokenFromNotificationService = async (userId) => {
+  const subscriberTokens = await SubscriberSchema.find({
+    userId,
+  });
+  return subscriberTokens.map((e) => e.token);
 };
 const sendNotification = async (data, userId) => {
-  const socketIds = await getUserSocketId(userId);
-
-  forEach(socketIds, (socketId) => {
-    IO.sockets.connected[socketId].emit('notification', data);
-  });
+  const userTokens = await getUserTokenFromNotificationService(userId);
+  notificationService.sendNotification(data, userTokens);
 };
 // WEB NOTIFICATION
 const getUserId = (userId) => (!userId ? {} : { userId });

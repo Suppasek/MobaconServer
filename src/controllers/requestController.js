@@ -512,6 +512,7 @@ const requestAcceptance = (req, res) => {
             });
 
             createNewChatRoom(request.id, request.userId, operator.id);
+
             notificationService.sendNotification(
               {
                 type: config.notification.acceptance.type,
