@@ -42,17 +42,18 @@ db.Memos = require('./memos')(sequelize, Sequelize);
 db.Offers = require('./offers')(sequelize, Sequelize);
 db.Requests = require('./requests')(sequelize, Sequelize);
 db.Plans = require('./plans')(sequelize, Sequelize);
+db.UserBilling = require('./userbilling')(sequelize, Sequelize);
 
 db.Operators.belongsTo(db.Roles, { foreignKey: 'roleId', as: 'role' });
 db.Operators.hasMany(db.Requests, { foreignKey: 'operatorId', as: 'request' });
 db.Users.belongsTo(db.Roles, { foreignKey: 'roleId', as: 'role' });
 db.Users.belongsTo(db.Plans, { foreignKey: 'planId', as: 'plan' });
 db.Users.hasMany(db.Requests, { foreignKey: 'userId', as: 'request' });
+db.Users.hasMany(db.UserBilling, { foreignKey: 'userId', as: 'billing' });
 db.Requests.belongsTo(db.Operators, { foreignKey: 'operatorId', as: 'operator' });
 db.Requests.belongsTo(db.Users, { foreignKey: 'userId', as: 'user' });
 db.Requests.belongsTo(db.Carriers, { foreignKey: 'carrierId', as: 'carrier' });
 db.Requests.belongsTo(db.Memos, { foreignKey: 'memoId', as: 'memo' });
 db.Requests.belongsTo(db.Offers, { foreignKey: 'offerId', as: 'offer' });
-
 
 module.exports = db;

@@ -4,3 +4,4 @@ logs/
 assets/images/operators
 assets/images/users
 src/mock_up/billIds.json
+mongodb/
