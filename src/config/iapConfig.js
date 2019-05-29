@@ -1,7 +1,7 @@
 module.exports = {
   applePassword: '[shared secrect from iTunes Connect]',
-  googlePublicKeyPath: '/path/to/your/public/key/',
-  subscription: {
-    rule: '* 0 * * *',
+  subscriptionInterval: {
+    rule: '*/15 * * * *', // run schedule every 15 minutes.
   },
+  androidPackageName: 'com.mobacon',
 };

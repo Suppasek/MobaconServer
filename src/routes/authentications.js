@@ -1,5 +1,6 @@
 const Router = require('express').Router();
 const authController = require('../controllers/authController');
+const { mobileJwtAuthorizeMiddleware } = require('../controllers/services/passportService');
 
 // API ROUTING FOR WEB APPLICATION
 Router.post('/web/login', authController.webLogin);
@@ -11,6 +12,7 @@ Router.patch('/web/operator/password', authController.changePassword);
 
 // API ROUTING FOR MOBILE APPLICATION
 Router.post('/mobile/signup', authController.mobileSignup);
+Router.get('/mobile/authorization', mobileJwtAuthorizeMiddleware, authController.mobileAuth);
 Router.post('/mobile/login', authController.mobileLogin);
 Router.post('/mobile/logout', authController.mobileLogout);
 Router.patch('/mobile/user/password', authController.mobileChangePassword);

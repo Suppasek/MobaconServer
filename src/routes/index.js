@@ -11,5 +11,6 @@ Router.use(require('./plans'));
 Router.use(require('./reportHistories'));
 Router.use(require('./requests'));
 Router.use(require('./users'));
+Router.use(require('./carriers'));
 
 module.exports = Router;
