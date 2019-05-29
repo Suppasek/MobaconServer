@@ -40,7 +40,6 @@ const getUserToken = async (user, time = config.jwt.mobile.time) => {
     data: user,
     exp: expired,
   }, config.secret);
-
   UserTokens.create({
     token,
     createdBy: user.id,

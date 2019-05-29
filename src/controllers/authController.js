@@ -11,6 +11,7 @@ const emailHelper = require('../helpers/emailHelper');
 const multerService = require('./services/multerService');
 const passportService = require('./services/passportService');
 const validationHelper = require('../helpers/validationHelper');
+const { checkUserBillingByUser } = require('./services/iapService');
 
 const op = Sequelize.Op;
 const {
@@ -46,6 +47,14 @@ const webLogin = async (req, res) => {
     }
   })(req, res);
 };
+
+const mobileAuth = async (req, res) => {
+  const user = await checkUserBillingByUser(req.user);
+  res.status(200).json({
+    info: user,
+  });
+};
+
 const webLogout = async (req, res) => {
   passport.authenticate('web-logout', async (error, token, info) => {
     if (error) {
@@ -310,6 +319,7 @@ const mobileSignup = async (req, res) => {
     }
   });
 };
+
 const mobileLogin = async (req, res) => {
   passport.authenticate('mobile-login', async (error, user, info) => {
     if (error) {
@@ -325,13 +335,19 @@ const mobileLogin = async (req, res) => {
         });
       }
     } else {
-      res.status(200).json({
-        info: user,
-        token: await tokenHelper.getUserToken(user),
-      });
+      try {
+        const newUserWIthNewPlan = await checkUserBillingByUser(user);
+        res.status(200).json({
+          info: newUserWIthNewPlan,
+          token: await tokenHelper.getUserToken(user),
+        });
+      } catch (err) {
+        res.status(400).json({ message: err.message });
+      }
     }
   })(req, res);
 };
+
 const mobileLogout = async (req, res) => {
   passport.authenticate('mobile-logout', async (error, token, info) => {
     if (error) {
@@ -716,6 +732,7 @@ module.exports = {
 
   mobileSignup,
   mobileLogin,
+  mobileAuth,
   mobileLogout,
   mobileChangePassword,
 

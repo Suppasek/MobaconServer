@@ -1,7 +1,5 @@
-
-
 module.exports = {
-  up: (queryInterface, Sequelize) => queryInterface.createTable('UserBilling', {
+  up: (queryInterface, Sequelize) => queryInterface.createTable('UserBillings', {
     id: {
       allowNull: false,
       autoIncrement: true,
@@ -15,6 +13,17 @@ module.exports = {
     },
     productId: {
       allowNull: false,
+      type: Sequelize.STRING,
+    },
+    upgradeInfomationId: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'UpgradeInfomations',
+        key: 'id',
+      },
+    },
+    kind: {
       type: Sequelize.STRING,
     },
     transactionReceipt: {
@@ -55,6 +64,24 @@ module.exports = {
       allowNull: false,
       type: Sequelize.DATE,
     },
+    paymentState: {
+      type: Sequelize.INTEGER,
+    },
+    cancelReason: {
+      type: Sequelize.STRING,
+    },
+    userCancellationTimeMillis: {
+      type: Sequelize.DATE,
+    },
+    startTimeDate: {
+      type: Sequelize.DATE,
+    },
+    expireDate: {
+      type: Sequelize.STRING,
+    },
+    priceAmountMicros: {
+      type: Sequelize.BIGINT,
+    },
   }),
-  down: (queryInterface, Sequelize) => queryInterface.dropTable('UserBilling'),
+  down: (queryInterface, Sequelize) => queryInterface.dropTable('UserBillings'),
 };

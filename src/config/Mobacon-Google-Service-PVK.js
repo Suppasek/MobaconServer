@@ -1,0 +1,7 @@
+module.exports = {
+  googlePublicKey: 'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzat3MOoWIHnjxnNMdV6gCDSxBw9cThKgHnzaZjM+PH0UOgMDun8Z0BMnDlCGOMzebUlGFScmb+Fw0J7qBP6fcxjPAE8Tgg9eH81R3NFTJS2i4CD2q7AiXdUE7V5fiddwiOrBE6Xo1i03Xk/Ox6hzjhXicGmUT4Sz9VT84hbzFD5Pk8QzFXTmGqTM8U+QVxYDWcSdl9pMUNyaBsjFHKFIcAouOqZtbxuy00fPdaz7D43q/aqpOrDS8jF7zwhoGJ/P9jY4SDqfW/L8ZA/xk8qsrjJ3dlz6QVIXpXTte2WTl4NZu/igWQw2ta+mBJE1M+BAJAuTgORA5+OihyYARceAkQIDAQAB',
+  googleAccToken: '4/WAFqafLjyuHDGeskOjSh5suxauwWTTfj5f8STacd4xwXo_h9Rf-we6-_WoSLSfE2Pi1y22IOoLJFKT702OL7ZyI',
+  refreshToken: '1/Qy3orajhqfXNZObko6rPbfUd0JQ56FtcQDwiQMy14B_uA3mLOrQ-LGjISxeuWoIv',
+  clientId: '532117584500-4mrilv217h90rkk2llludf8oc7n7o4mt.apps.googleusercontent.com',
+  clientSecret: 'Kia9FJWUlOEf5sIXMW2NdYEh',
+};

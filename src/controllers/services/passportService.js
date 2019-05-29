@@ -21,6 +21,7 @@ const {
   UserTokens,
   Plans,
 } = require('../../models');
+const { getUserByPhone } = require('./userService');
 
 const op = Sequelize.Op;
 config.secret = secret;
@@ -211,22 +212,7 @@ passport.use('mobile-login', new LocalStrategy({
   session: false,
 }, async (req, phoneNumber, password, done) => {
   try {
-    const user = await Users.findOne({
-      where: {
-        phoneNumber: {
-          [op.eq]: phoneNumber,
-        },
-      },
-      include: [{
-        model: Roles,
-        as: 'role',
-      }, {
-        model: Plans,
-        as: 'plan',
-        attributes: ['id', 'name'],
-      }],
-    });
-
+    const user = await getUserByPhone(phoneNumber);
     if (!user) {
       done(null, false, {
         status: 400,
@@ -302,7 +288,7 @@ passport.use('mobile-jwt', new JwtStrategy({
           attributes: ['id', 'name'],
         }],
       });
-
+      // console.log('user find one', user);
       if (moment.utc(jwtPayload.exp) > moment.utc()) {
         done(null, user);
       } else {
@@ -313,7 +299,8 @@ passport.use('mobile-jwt', new JwtStrategy({
           if (req.file) {
             fs.unlink(req.file.path, () => {});
           }
-        } else {
+        } else if (user) {
+          console.log('user data', user);
           done(null, user, {
             token: await tokenHelper.getUserToken(user),
           });
@@ -374,6 +361,8 @@ const webJwtAuthorize = (req, res, next) => passport.authenticate('web-jwt', (er
     });
   }
 })(req, res);
+
+// TODO Deprecated this function in future and use mobileJwtAuthorizeMiddleware instead!!.
 const mobileJwtAuthorize = (req, res, next) => passport.authenticate('mobile-jwt', (error, user, info) => {
   if (error) {
     res.status(500).json({
@@ -390,7 +379,26 @@ const mobileJwtAuthorize = (req, res, next) => passport.authenticate('mobile-jwt
   }
 })(req, res);
 
+const mobileJwtAuthorizeMiddleware = (req, res, next) => passport.authenticate('mobile-jwt', (error, user, info) => {
+  if (error) {
+    res.status(500).json({
+      message: 'Internal server error',
+    });
+  } else if (user) {
+    req.user = user;
+    req.info = info ? info.token : undefined;
+    next();
+  } else if (info.constructor.name === 'Error') {
+    res.status(401).json({ message: 'No auth token' });
+  } else {
+    res.status(info.status || 400).json({
+      message: info.message,
+    });
+  }
+})(req, res);
+
 module.exports = {
   webJwtAuthorize,
   mobileJwtAuthorize,
+  mobileJwtAuthorizeMiddleware,
 };
