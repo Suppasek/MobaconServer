@@ -24,7 +24,7 @@ const app = express()
 const httpServer = http.createServer(app).listen(config.httpPort, () => {
   mongodb.createClient();
   socket.chat(httpServer);
-  schedulerService.set();
   console.clear();
   console.log(`START SERVER ON ${config.host}:${config.httpPort}`);
+  schedulerService.startIAP();
 });
