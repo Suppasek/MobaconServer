@@ -53,6 +53,7 @@ const sendChangePasswordSms = async (prefixPhoneNumber, phoneNumber, token) => {
 };
 const storeConfirmationCode = async (createdBy, time = config.token.verification.mobile.time) => {
   const rawCode = await ramdomOtp();
+  console.log("sendOtp " + rawCode);
   const user = await Users.findOne({
     where: {
       id: {
