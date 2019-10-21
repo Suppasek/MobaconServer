@@ -48,6 +48,28 @@ const createNewChatRoom = async (requestId, userId, operatorId) => {
     },
   ]);
 };
+
+const updateNewChatRoom = async (requestId, userId, operatorId) => {
+  await ChatRoomSchema.updateMany(
+    {
+      userId,
+      activated: true,
+    },
+    {
+      activated: false,
+    },
+  );
+
+  await ChatRoomSchema.updateOne({
+    userId,
+  }, {
+    $set: {
+      operatorId,
+      requestId,
+    },
+  });
+};
+
 const findAcceptedRequestOfMonth = async userId => {
   const startOfMonth = moment()
     .startOf('month')
@@ -511,7 +533,17 @@ const requestAcceptance = (req, res) => {
               message: 'accept request successfully',
             });
 
-            createNewChatRoom(request.id, request.userId, operator.id);
+            const chatroom = await ChatRoomSchema.findOne({
+              userId: request.userId,
+            });
+
+            console.log('chatroom', chatroom);
+
+            if (chatroom) {
+              updateNewChatRoom(request.id, request.userId, operator.id);
+            } else {
+              createNewChatRoom(request.id, request.userId, operator.id);
+            }
 
             notificationService.sendNotification(
               {
@@ -1003,4 +1035,5 @@ module.exports = {
   likeReviewByRequestId,
   dislikeReviewByRequestId,
   createNewBill,
+  updateNewChatRoom,
 };
