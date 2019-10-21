@@ -10,7 +10,7 @@ module.exports = {
     mimetype: ['image/png', 'image/jpeg'],
   },
   web: {
-    protocol: 'http',
+    protocol: 'https',
     host: 'mobacon-web.pieros.site',
     port: 80,
   },

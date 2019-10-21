@@ -87,7 +87,7 @@ const checkUserBillingByUserId = userId => new Promise(async (resolve, reject) =
 
 const checkUserBillingByUser = user => new Promise(async (resolve, reject) => {
   try {
-    await checkUserBillingByUserId(user.id);
+   // await checkUserBillingByUserId(user.id);
     const newUser = await getUserById(user.id);
     resolve(newUser);
   } catch (error) {

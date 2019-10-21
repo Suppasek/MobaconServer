@@ -44,11 +44,14 @@ const sendChangePasswordMail = (email, forgetPasswordToken) => {
       port: apiConfig.web.port,
       token: forgetPasswordToken,
     });
+    const { protocol, host } = apiConfig.web;
     const mailOptions = {
       from: 'Mobacon@mobacon.com',
       to: email,
       subject: 'Change your password',
-      html: htmlToSend,
+      html: `
+        <a href='${protocol}://${host}/resetPassword?token=${forgetPasswordToken}'>Change your password</a>
+      `,
     };
     sgMail.send(mailOptions);
   });

@@ -210,9 +210,9 @@ passport.use('mobile-login', new LocalStrategy({
   passwordField: 'password',
   passReqToCallback: true,
   session: false,
-}, async (req, phoneNumber, password, done) => {
+}, async (req, username, password, done) => {
   try {
-    const user = await getUserByPhone(phoneNumber);
+    const user = await getUserByPhone(username);
     if (!user) {
       done(null, false, {
         status: 400,
@@ -225,9 +225,10 @@ passport.use('mobile-login', new LocalStrategy({
       });
     } else if (user) {
       const validatePassword = await bcrypt.compare(password, user.password || 'none'); // password is null in some fields
-      if (validatePassword) {
+if (validatePassword) {
+
         const userInfomation = await getUserInfomation(user);
-        done(null, userInfomation);
+	done(null,userInfomation);
       } else {
         done(null, false, {
           status: 400,
@@ -238,7 +239,7 @@ passport.use('mobile-login', new LocalStrategy({
   } catch (error) {
     done(error, false, {
       status: 500,
-      message: 'Internal server error',
+      message: error+'Internal server error',
     });
   }
 }));
