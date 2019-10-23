@@ -522,6 +522,12 @@ const requestAcceptance = (req, res) => {
               token: newToken,
               message: 'request has accepted',
             });
+
+            await request.update({
+              operatorId: operator.id,
+              status: 'Accepted',
+            });
+            
           } else {
             await request.update({
               operatorId: operator.id,
@@ -696,10 +702,27 @@ const createRequestReviewById = (req, res) => {
                   message: 'request is not your',
                 });
               } else if (request.offerId) {
+                await Offers.update(
+                  {
+                    review: req.body.review,
+                    suggestion: req.body.suggestion,
+                  },
+                  {
+                    where: {
+                      id: {
+                        [op.eq]: request.offerId,
+                      },
+                    },
+                  },
+                );
+                await request.update({
+                  status: constant.REQUEST_STATUS.REVIEWED,
+                });
                 res.status(403).json({
                   token: newToken,
                   message: 'request has reviewed',
                 });
+                
               } else {
                 const newOffer = await Offers.create({
                   review: req.body.review,
