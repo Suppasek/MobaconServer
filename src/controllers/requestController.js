@@ -582,6 +582,60 @@ const requestAcceptance = (req, res) => {
     );
   });
 };
+
+const requestDecline = (req, res) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(
+      req,
+      res,
+      operator,
+      newToken,
+      async () => {
+        try {
+          const request = await Requests.findOne({
+            where: {
+              id: {
+                [op.eq]: req.params.requestId,
+              },
+            },
+          });
+
+          if (!request) {
+            res.status(400).json({
+              token: newToken,
+              message: 'request not found',
+            });
+          } else {
+      
+            await request.update({
+              operatorId: operator.id,
+              status: 'Rejected',
+            });
+
+            res.status(200).json({
+              token: newToken,
+              message: 'request has been declined successfully',
+            });
+
+          }
+        } catch (err) {
+          if (err.errors) {
+            res.status(400).json({
+              token: newToken,
+              message: err.errors[0].message,
+            });
+          } else {
+            res.status(500).json({
+              token: newToken,
+              message: 'Internal server error',
+            });
+          }
+        }
+      },
+    );
+  });
+};
+
 const putRequestMemoById = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(
@@ -1050,6 +1104,7 @@ module.exports = {
   getAcceptedRequests,
   getRequestById,
   requestAcceptance,
+  requestDecline,
   putRequestMemoById,
   createRequestReviewById,
   getBillByUserId,
