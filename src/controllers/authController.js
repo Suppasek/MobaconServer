@@ -278,6 +278,20 @@ const mobileSignup = async (req, res) => {
   validationHelper.bodyValidator(req, res, ['fullName', 'phoneNumber', 'password'], async () => {
     try {
       const password = await bcrypt.hash(req.body.password, bcrypt.genSaltSync(10));
+
+      const exitingUser = await Users.findOne({
+        where: {
+          phoneNumber: {
+            [op.eq]: req.body.phoneNumber,
+          },
+        },
+      });
+      console.log('exitinguser', exitingUser);
+      if (exitingUser) {
+        return res.status(401).json({
+          message: 'Phone Number Already Taken',
+        });
+      }
       const createdUser = await Users.create({
         roleId: constant.ROLE.USER,
         planId: constant.PLAN.BASIC,
