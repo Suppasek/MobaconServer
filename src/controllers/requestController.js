@@ -48,6 +48,28 @@ const createNewChatRoom = async (requestId, userId, operatorId) => {
     },
   ]);
 };
+
+const updateNewChatRoom = async (requestId, userId, operatorId) => {
+  await ChatRoomSchema.updateMany(
+    {
+      userId,
+      activated: true,
+    },
+    {
+      activated: false,
+    },
+  );
+
+  await ChatRoomSchema.updateOne({
+    userId,
+  }, {
+    $set: {
+      operatorId,
+      requestId,
+    },
+  });
+};
+
 const findAcceptedRequestOfMonth = async userId => {
   const startOfMonth = moment()
     .startOf('month')
@@ -500,6 +522,12 @@ const requestAcceptance = (req, res) => {
               token: newToken,
               message: 'request has accepted',
             });
+
+            await request.update({
+              operatorId: operator.id,
+              status: 'Accepted',
+            });
+            
           } else {
             await request.update({
               operatorId: operator.id,
@@ -511,7 +539,17 @@ const requestAcceptance = (req, res) => {
               message: 'accept request successfully',
             });
 
-            createNewChatRoom(request.id, request.userId, operator.id);
+            const chatroom = await ChatRoomSchema.findOne({
+              userId: request.userId,
+            });
+
+            console.log('chatroom', chatroom);
+
+            if (chatroom) {
+              updateNewChatRoom(request.id, request.userId, operator.id);
+            } else {
+              createNewChatRoom(request.id, request.userId, operator.id);
+            }
 
             notificationService.sendNotification(
               {
@@ -544,6 +582,60 @@ const requestAcceptance = (req, res) => {
     );
   });
 };
+
+const requestDecline = (req, res) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(
+      req,
+      res,
+      operator,
+      newToken,
+      async () => {
+        try {
+          const request = await Requests.findOne({
+            where: {
+              id: {
+                [op.eq]: req.params.requestId,
+              },
+            },
+          });
+
+          if (!request) {
+            res.status(400).json({
+              token: newToken,
+              message: 'request not found',
+            });
+          } else {
+      
+            await request.update({
+              operatorId: operator.id,
+              status: 'Rejected',
+            });
+
+            res.status(200).json({
+              token: newToken,
+              message: 'request has been declined successfully',
+            });
+
+          }
+        } catch (err) {
+          if (err.errors) {
+            res.status(400).json({
+              token: newToken,
+              message: err.errors[0].message,
+            });
+          } else {
+            res.status(500).json({
+              token: newToken,
+              message: 'Internal server error',
+            });
+          }
+        }
+      },
+    );
+  });
+};
+
 const putRequestMemoById = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(
@@ -664,10 +756,27 @@ const createRequestReviewById = (req, res) => {
                   message: 'request is not your',
                 });
               } else if (request.offerId) {
+                await Offers.update(
+                  {
+                    review: req.body.review,
+                    suggestion: req.body.suggestion,
+                  },
+                  {
+                    where: {
+                      id: {
+                        [op.eq]: request.offerId,
+                      },
+                    },
+                  },
+                );
+                await request.update({
+                  status: constant.REQUEST_STATUS.REVIEWED,
+                });
                 res.status(403).json({
                   token: newToken,
                   message: 'request has reviewed',
                 });
+                
               } else {
                 const newOffer = await Offers.create({
                   review: req.body.review,
@@ -995,6 +1104,7 @@ module.exports = {
   getAcceptedRequests,
   getRequestById,
   requestAcceptance,
+  requestDecline,
   putRequestMemoById,
   createRequestReviewById,
   getBillByUserId,
@@ -1003,4 +1113,5 @@ module.exports = {
   likeReviewByRequestId,
   dislikeReviewByRequestId,
   createNewBill,
+  updateNewChatRoom,
 };
