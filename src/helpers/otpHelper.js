@@ -45,7 +45,8 @@ const sendChangePasswordSms = async (prefixPhoneNumber, phoneNumber, token) => {
       from: twilioConfig.phoneNumer,
       body: `You can change your password on website, click http://mobacon-web.pieros.site/user/resetPassword?token=${token}
       `,
-    });
+    }).then(message => console.log('message', message.sid)).catch(err => console.log('err', err))
+    console.log(`${prefixPhoneNumber}${phoneNumber.slice(1)}`,);
     return true;
   } catch (err) {
     return false;
