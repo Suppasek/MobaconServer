@@ -57,7 +57,21 @@ const sendChangePasswordMail = (email, forgetPasswordToken) => {
   });
 };
 
+const sendDeactivateMail = (email) => {
+    const mailOptions = {
+      from: 'Mobacon@mobacon.com',
+      to: email,
+      subject: 'Account Deactivated',
+      html: `
+        <p>Your account has been deactivated</p>
+      `,
+    };
+    sgMail.send(mailOptions);
+
+};
+
 module.exports = {
   sendVerificationMail,
   sendChangePasswordMail,
+  sendDeactivateMail,
 };
