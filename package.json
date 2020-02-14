@@ -24,7 +24,7 @@
     "express": "^4.16.3",
     "google-play-billing-validator": "^2.0.2",
     "googleapis": "^40.0.0",
-    "handlebars": "^4.0.12",
+    "handlebars": "^4.3.0",
     "in-app-purchase": "^1.10.7",
     "jsonwebtoken": "^8.3.0",
     "moment": "^2.22.2",
