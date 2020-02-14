@@ -250,7 +250,11 @@ const activateOperator = async (req, res) => {
           foundOperator.update({
             activated: !foundOperator.activated,
           }).then(() => {
-            emailHelper.sendDeactivateMail(foundOperator.email);
+            if (foundOperator.activated) {
+              emailHelper.sendActivateMail(foundOperator.email);
+            } else {
+              emailHelper.sendDeactivateMail(foundOperator.email);
+            }
             res.status(200).json({
               token: newToken,
               message: !foundOperator.activated ? 'deactivated operator successfully' : 'activated operator successfully',

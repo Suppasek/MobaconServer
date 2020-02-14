@@ -70,8 +70,22 @@ const sendDeactivateMail = (email) => {
 
 };
 
+const sendActivateMail = (email) => {
+  const mailOptions = {
+    from: 'Mobacon@mobacon.com',
+    to: email,
+    subject: 'Account Activated',
+    html: `
+      <p>Your account has been activated</p>
+    `,
+  };
+  sgMail.send(mailOptions);
+
+};
+
 module.exports = {
   sendVerificationMail,
   sendChangePasswordMail,
   sendDeactivateMail,
+  sendActivateMail,
 };
