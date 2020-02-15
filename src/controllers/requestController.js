@@ -606,7 +606,7 @@ const requestDecline = (req, res) => {
               message: 'request not found',
             });
           } else {
-      
+           
             await request.update({
               operatorId: operator.id,
               status: 'Rejected',
@@ -615,6 +615,58 @@ const requestDecline = (req, res) => {
             res.status(200).json({
               token: newToken,
               message: 'request has been declined successfully',
+            });
+
+          }
+        } catch (err) {
+          if (err.errors) {
+            res.status(400).json({
+              token: newToken,
+              message: err.errors[0].message,
+            });
+          } else {
+            res.status(500).json({
+              token: newToken,
+              message: 'Internal server error',
+            });
+          }
+        }
+      },
+    );
+  });
+};
+
+const requestEdit = (req, res) => {
+  passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
+    validationHelper.operatorValidator(
+      req,
+      res,
+      operator,
+      newToken,
+      async () => {
+        try {
+          const request = await Requests.findOne({
+            where: {
+              id: {
+                [op.eq]: req.params.requestId,
+              },
+            },
+          });
+
+          if (!request) {
+            res.status(400).json({
+              token: newToken,
+              message: 'request not found',
+            });
+          } else {
+            await request.update({
+              operatorId: operator.id,
+              status: 'Accepted',
+            });
+
+            res.status(200).json({
+              token: newToken,
+              message: 'request has been reviewing successfully',
             });
 
           }
@@ -820,7 +872,7 @@ const createRequestReviewById = (req, res) => {
     );
   });
 };
-const getBillByUserId = (req, res) => {
+const getBillByRequestId = (req, res) => {
   passportService.webJwtAuthorize(req, res, async (operator, newToken) => {
     validationHelper.operatorValidator(
       req,
@@ -829,19 +881,10 @@ const getBillByUserId = (req, res) => {
       newToken,
       async () => {
         try {
-          const foundbills = await Requests.findAll({
-            attributes: ['id', 'billRef'],
-            where: {
-              userId: {
-                [op.eq]: req.params.userId,
-              },
-            },
-          });
+          const request = await Requests.findByPk(req.params.requestId);
 
           const bills = await BillSchema.find({
-            _id: {
-              $in: await foundbills.map(bill => bill.billRef),
-            },
+            userId: request.dataValues.userId,
           });
 
           res.status(200).json(bills);
@@ -1105,9 +1148,10 @@ module.exports = {
   getRequestById,
   requestAcceptance,
   requestDecline,
+  requestEdit,
   putRequestMemoById,
   createRequestReviewById,
-  getBillByUserId,
+  getBillByRequestId,
   getReviewByUserId,
   getReviewByRequestId,
   likeReviewByRequestId,

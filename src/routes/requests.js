@@ -3,12 +3,13 @@ const requestController = require('../controllers/requestController');
 
 // API ROUTING FOR WEB APPLICATION
 Router.get('/web/requests', requestController.getRequests);
-Router.get('/web/request/bills/:userId', requestController.getBillByUserId);
+Router.get('/web/request/bills/:requestId', requestController.getBillByRequestId);
 Router.get('/web/request/review/:userId', requestController.getReviewByUserId);
 Router.get('/web/requests/accepted', requestController.getAcceptedRequests);
 Router.get('/web/request/:requestId', requestController.getRequestById);
 Router.patch('/web/request/:requestId/acceptance', requestController.requestAcceptance);
 Router.patch('/web/request/:requestId/decline', requestController.requestDecline);
+Router.patch('/web/request/:requestId/edit', requestController.requestEdit);
 Router.put('/web/request/:requestId/memo', requestController.putRequestMemoById);
 Router.post('/web/request/:requestId/review', requestController.createRequestReviewById);
 
