@@ -18,7 +18,7 @@ const app = express()
   .use(cors())
   .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
-  .use(morgan('combined', { stream: accessLogStream }))
+  // .use(morgan('combined', { stream: accessLogStream }))
   .use('/mobacon/api/', Router);
 
 const httpServer = http.createServer(app).listen(config.httpPort, () => {
